@@ -1,0 +1,17 @@
+.git
+.github
+data/raw
+data/processed
+notebooks
+__pycache__
+.mypy_cache
+.ruff_cache
+.pytest_cache
+*.pyc
+.env
+.env.local
+node_modules
+frontend/dist
+*.md
+!README.md
+Makefile
