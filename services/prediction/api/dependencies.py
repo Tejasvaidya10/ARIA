@@ -10,11 +10,11 @@ def get_settings(request: Request) -> PredictionSettings:
 
 
 def get_probability_model(request: Request) -> xgb.Booster:
-    return request.app.state.probability_model
+    return request.app.state.probability_model  # type: ignore[no-any-return]
 
 
 def get_severity_model(request: Request) -> xgb.Booster:
-    return request.app.state.severity_model
+    return request.app.state.severity_model  # type: ignore[no-any-return]
 
 
 def get_probability_explainer(request: Request) -> shap.TreeExplainer:

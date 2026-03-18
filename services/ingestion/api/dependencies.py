@@ -10,8 +10,8 @@ def get_settings(request: Request) -> IngestionSettings:
 
 
 def get_spark(request: Request) -> SparkSession:
-    return request.app.state.spark
+    return request.app.state.spark  # type: ignore[no-any-return]
 
 
 def get_nlp(request: Request) -> Language:
-    return request.app.state.nlp
+    return request.app.state.nlp  # type: ignore[no-any-return]

@@ -9,7 +9,7 @@ from services.prediction.core.constants import (
 )
 
 
-def extract_features(entity_summary: dict[str, list[str]]) -> np.ndarray:
+def extract_features(entity_summary: dict[str, list[str]]) -> np.ndarray:  # type: ignore[type-arg]
     """Convert NER entity summary into a feature vector for XGBoost."""
     perils = entity_summary.get("PERIL", [])
     coverages = entity_summary.get("COVERAGE_TYPE", [])

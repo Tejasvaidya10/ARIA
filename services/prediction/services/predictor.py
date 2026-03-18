@@ -31,7 +31,7 @@ def predict_risk(
     probability_model: xgb.Booster,
     severity_model: xgb.Booster,
     probability_explainer: shap.TreeExplainer,
-    features: np.ndarray,
+    features: np.ndarray,  # type: ignore[type-arg]
     settings: PredictionSettings,
 ) -> PredictionResponse:
     dmatrix = xgb.DMatrix(
@@ -69,7 +69,7 @@ def classify_risk_tier(probability: float, settings: PredictionSettings) -> Risk
     return RiskTier.CRITICAL
 
 
-def _extract_risk_factors(shap_values: np.ndarray) -> list[RiskFactor]:
+def _extract_risk_factors(shap_values: np.ndarray) -> list[RiskFactor]:  # type: ignore[type-arg]
     """Pick the top-k features by absolute SHAP value."""
     abs_values = np.abs(shap_values)
     top_indices = np.argsort(abs_values)[::-1][:TOP_K_SHAP_FEATURES]
