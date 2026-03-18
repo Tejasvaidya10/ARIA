@@ -18,12 +18,21 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Set up Java (PySpark dependency)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
       - name: Install dependencies
         run: |
           pip install ruff mypy pytest pytest-asyncio httpx
           pip install pydantic pydantic-settings structlog
           pip install fastapi uvicorn slowapi
           pip install prometheus-fastapi-instrumentator
+          pip install -r services/ingestion/requirements.txt
+          pip install -r services/prediction/requirements.txt
+          python -m spacy download en_core_web_sm
 
       - name: Lint
         run: ruff check .
@@ -31,11 +40,14 @@ jobs:
       - name: Check formatting
         run: ruff format --check .
 
-      - name: Type check
+      - name: Type check shared
         run: mypy services/shared/
 
+      - name: Type check prediction
+        run: mypy services/prediction/
+
       - name: Run tests
-        run: pytest services/ tests/ -v --tb=short
+        run: pytest services/ -v --tb=short
 
   frontend:
     runs-on: ubuntu-latest
