@@ -16,7 +16,7 @@ def load_nlp_pipeline(model_path: str, entity_patterns: list[dict[str, Any]]) ->
     nlp = spacy.load(model_path)
 
     ruler = nlp.add_pipe("entity_ruler", before="ner")
-    ruler.add_patterns(entity_patterns)  # type: ignore[attr-defined]
+    ruler.add_patterns(entity_patterns)
 
     _nlp = nlp
     return nlp
