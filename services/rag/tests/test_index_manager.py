@@ -16,11 +16,11 @@ def _make_record(case_id: int) -> CaseRecord:
     )
 
 
-def _random_vectors(n: int, dim: int = 384) -> np.ndarray:
+def _random_vectors(n: int, dim: int = 384) -> np.ndarray:  # type: ignore[type-arg]
     rng = np.random.default_rng(42)
     vecs = rng.standard_normal((n, dim)).astype(np.float32)
     norms = np.linalg.norm(vecs, axis=1, keepdims=True)
-    return vecs / norms
+    return vecs / norms  # type: ignore[no-any-return]
 
 
 def test_add_and_search() -> None:

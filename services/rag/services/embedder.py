@@ -26,13 +26,13 @@ def entities_to_text(entity_summary: dict[str, list[str]]) -> str:
     return "; ".join(parts) if parts else "empty submission"
 
 
-def embed_text(model: SentenceTransformer, text: str) -> np.ndarray:
+def embed_text(model: SentenceTransformer, text: str) -> np.ndarray:  # type: ignore[type-arg]
     """Encode a single text string into a dense vector."""
     embedding = model.encode(text, normalize_embeddings=True)
     return np.array(embedding, dtype=np.float32).reshape(1, -1)
 
 
-def embed_batch(model: SentenceTransformer, texts: list[str]) -> np.ndarray:
+def embed_batch(model: SentenceTransformer, texts: list[str]) -> np.ndarray:  # type: ignore[type-arg]
     """Encode multiple texts at once. More efficient than one-by-one."""
     embeddings = model.encode(texts, normalize_embeddings=True, batch_size=64)
     return np.array(embeddings, dtype=np.float32)

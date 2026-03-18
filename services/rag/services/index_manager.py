@@ -29,7 +29,7 @@ class FAISSIndexManager:
         count: int = self.index.ntotal
         return count
 
-    def add(self, vectors: np.ndarray, records: list[CaseRecord]) -> None:
+    def add(self, vectors: np.ndarray, records: list[CaseRecord]) -> None:  # type: ignore[type-arg]
         """Add vectors and their corresponding case records to the index."""
         if vectors.shape[0] != len(records):
             msg = f"Vector count ({vectors.shape[0]}) != record count ({len(records)})"
@@ -43,7 +43,7 @@ class FAISSIndexManager:
 
     def search(
         self,
-        query_vector: np.ndarray,
+        query_vector: np.ndarray,  # type: ignore[type-arg]
         top_k: int = 5,
         threshold: float = 0.3,
     ) -> list[SearchResult]:

@@ -27,7 +27,8 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     model = load_embedding_model(settings.embedding_model)
 
     await logger.ainfo("loading_faiss_index", path=settings.index_path)
-    manager = FAISSIndexManager(dimension=model.get_sentence_embedding_dimension())
+    dim: int = model.get_sentence_embedding_dimension()  # type: ignore[assignment]
+    manager = FAISSIndexManager(dimension=dim)
     manager.load(settings.index_path, settings.case_store_path)
     await logger.ainfo("index_loaded", total_vectors=manager.total_indexed)
 

@@ -1,4 +1,5 @@
 import pytest
+from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
 
 from services.rag.app import create_app
@@ -6,16 +7,16 @@ from services.rag.app import create_app
 # Build the app once with a test-friendly setup.
 # The lifespan loads the embedding model and FAISS index.
 # If no index files exist on disk, the service starts with an empty index
-# (which is fine — search just returns no results).
+# (which is fine -- search just returns no results).
 
 
 @pytest.fixture()
-def app():
+def app() -> FastAPI:
     return create_app()
 
 
 @pytest.mark.asyncio
-async def test_health(app) -> None:
+async def test_health(app: FastAPI) -> None:
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         resp = await client.get("/health")
@@ -24,7 +25,7 @@ async def test_health(app) -> None:
 
 
 @pytest.mark.asyncio
-async def test_ready(app) -> None:
+async def test_ready(app: FastAPI) -> None:
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         resp = await client.get("/ready")
@@ -32,7 +33,7 @@ async def test_ready(app) -> None:
 
 
 @pytest.mark.asyncio
-async def test_search_returns_response(app) -> None:
+async def test_search_returns_response(app: FastAPI) -> None:
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         resp = await client.post(
@@ -53,7 +54,7 @@ async def test_search_returns_response(app) -> None:
 
 
 @pytest.mark.asyncio
-async def test_search_empty_entities(app) -> None:
+async def test_search_empty_entities(app: FastAPI) -> None:
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         resp = await client.post(
@@ -65,7 +66,7 @@ async def test_search_empty_entities(app) -> None:
 
 
 @pytest.mark.asyncio
-async def test_metrics_endpoint(app) -> None:
+async def test_metrics_endpoint(app: FastAPI) -> None:
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         resp = await client.get("/metrics")
