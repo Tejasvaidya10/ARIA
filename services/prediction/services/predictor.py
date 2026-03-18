@@ -1,0 +1,90 @@
+from pathlib import Path
+
+import numpy as np
+import shap
+import xgboost as xgb
+
+from services.prediction.config import PredictionSettings
+from services.prediction.core.constants import (
+    FEATURE_DISPLAY_NAMES,
+    FEATURE_NAMES,
+    TOP_K_SHAP_FEATURES,
+)
+from services.prediction.core.schemas import PredictionResponse
+from services.shared.exceptions import ModelNotLoadedError
+from services.shared.schemas import RiskFactor, RiskTier
+
+
+def load_model(path: str) -> xgb.Booster:
+    if not Path(path).exists():
+        raise ModelNotLoadedError(f"Model not found at {path}")
+    model = xgb.Booster()
+    model.load_model(path)
+    return model
+
+
+def create_explainer(model: xgb.Booster) -> shap.TreeExplainer:
+    return shap.TreeExplainer(model)
+
+
+def predict_risk(
+    probability_model: xgb.Booster,
+    severity_model: xgb.Booster,
+    probability_explainer: shap.TreeExplainer,
+    features: np.ndarray,
+    settings: PredictionSettings,
+) -> PredictionResponse:
+    dmatrix = xgb.DMatrix(
+        features.reshape(1, -1),
+        feature_names=FEATURE_NAMES,
+    )
+
+    risk_probability = float(probability_model.predict(dmatrix)[0])
+    predicted_amount = float(severity_model.predict(dmatrix)[0])
+    predicted_amount = max(predicted_amount, 0.0)
+
+    shap_values = probability_explainer.shap_values(dmatrix)
+    risk_factors = _extract_risk_factors(shap_values[0])
+    risk_tier = classify_risk_tier(risk_probability, settings)
+    confidence = abs(risk_probability - 0.5) * 2
+
+    return PredictionResponse(
+        submission_id="",  # filled by the route handler
+        risk_tier=risk_tier,
+        risk_probability=round(risk_probability, 4),
+        predicted_claim_amount=round(predicted_amount, 2),
+        key_risk_factors=risk_factors,
+        confidence_score=round(confidence, 4),
+        processing_time_ms=0.0,  # filled by the route handler
+    )
+
+
+def classify_risk_tier(probability: float, settings: PredictionSettings) -> RiskTier:
+    if probability < settings.risk_threshold_low:
+        return RiskTier.LOW
+    if probability < settings.risk_threshold_moderate:
+        return RiskTier.MODERATE
+    if probability < settings.risk_threshold_high:
+        return RiskTier.HIGH
+    return RiskTier.CRITICAL
+
+
+def _extract_risk_factors(shap_values: np.ndarray) -> list[RiskFactor]:
+    """Pick the top-k features by absolute SHAP value."""
+    abs_values = np.abs(shap_values)
+    top_indices = np.argsort(abs_values)[::-1][:TOP_K_SHAP_FEATURES]
+
+    factors = []
+    for idx in top_indices:
+        val = float(shap_values[idx])
+        if abs(val) < 1e-6:
+            continue
+        name = FEATURE_NAMES[idx]
+        factors.append(
+            RiskFactor(
+                name=FEATURE_DISPLAY_NAMES.get(name, name),
+                shap_value=round(val, 6),
+                direction="increases_risk" if val > 0 else "decreases_risk",
+            )
+        )
+    return factors
