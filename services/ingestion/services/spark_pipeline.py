@@ -1,3 +1,5 @@
+import os
+import sys
 import time
 import uuid
 
@@ -14,6 +16,13 @@ from services.ingestion.services import ner_extractor, text_extractor
 
 
 def create_spark_session(settings: IngestionSettings) -> SparkSession:
+    # PySpark spawns worker processes using whatever `python` is on PATH.
+    # If a venv is active, the system Python may differ (e.g. 3.14 vs 3.12),
+    # causing PYTHON_VERSION_MISMATCH. Setting these env vars forces workers
+    # to use the same interpreter as the driver.
+    os.environ["PYSPARK_PYTHON"] = sys.executable
+    os.environ["PYSPARK_DRIVER_PYTHON"] = sys.executable
+
     return (
         SparkSession.builder.master(settings.spark_master)
         .appName(settings.spark_app_name)
