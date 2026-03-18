@@ -33,6 +33,7 @@ jobs:
           pip install -r services/ingestion/requirements.txt
           pip install -r services/prediction/requirements.txt
           pip install -r services/rag/requirements.txt
+          pip install -r services/llm/requirements.txt
           python -m spacy download en_core_web_sm
 
       - name: Lint
@@ -49,6 +50,9 @@ jobs:
 
       - name: Type check rag
         run: mypy services/rag/
+
+      - name: Type check llm
+        run: mypy services/llm/
 
       - name: Run tests
         run: pytest services/ -v --tb=short
