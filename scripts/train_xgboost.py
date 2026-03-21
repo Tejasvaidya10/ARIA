@@ -1,147 +1,127 @@
-"""Generate synthetic insurance data and train XGBoost models for ARIA.
+"""Train XGBoost models on real Kaggle Auto Insurance Claims data.
 
-Produces two model artifacts:
-  models/xgboost/claim_probability.json  (binary classification)
-  models/xgboost/claim_severity.json     (regression, dollar amount)
+Reads data/raw/insurance_claims.csv (Kaggle: buntyshah/auto-insurance-claims-data),
+converts each row into an NER-style entity summary, runs it through the same
+feature_engineer used at inference time, and trains two models:
 
-Run from the repo root:
-  python scripts/train_xgboost.py
+  models/xgboost/claim_probability.json  (binary: will a claim be high-cost?)
+  models/xgboost/claim_severity.json     (regression: total claim amount in $)
+
+This ensures the models train on features shaped exactly like what the prediction
+service sees in production when processing real NER output from PDFs.
+
+Usage:
+    python -m scripts.train_xgboost
 """
 
+import csv
 from pathlib import Path
 
 import numpy as np
 import xgboost as xgb
 from sklearn.metrics import roc_auc_score
 
-FEATURE_NAMES = [
-    "entity_count_total",
-    "entity_count_money",
-    "entity_count_peril",
-    "entity_count_coverage",
-    "entity_count_claim_status",
-    "entity_count_property_type",
-    "entity_count_vehicle",
-    "has_open_claim",
-    "has_denied_claim",
-    "has_fire_peril",
-    "has_flood_peril",
-    "has_earthquake_peril",
-    "has_wind_peril",
-    "has_cyber_coverage",
-    "has_umbrella_coverage",
-    "max_monetary_value",
-    "mean_monetary_value",
-    "num_monetary_values",
-    "prior_claims_indicator",
-    "property_risk_score",
-    "coverage_breadth",
-    "peril_diversity",
-]
+from services.prediction.core.constants import FEATURE_NAMES
+from services.prediction.services.feature_engineer import extract_features
 
+DATA_PATH = Path("data/raw/insurance_claims.csv")
 OUTPUT_DIR = Path("models/xgboost")
 
+# Incident types map to "perils" the NER pipeline would extract
+INCIDENT_TO_PERILS = {
+    "Single Vehicle Collision": ["collision"],
+    "Vehicle Theft": ["theft"],
+    "Multi-vehicle Collision": ["collision", "multi-vehicle"],
+    "Parked Car": ["vandalism"],
+}
 
-def generate_synthetic_data(
-    n_samples: int = 5000, seed: int = 42
-) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    rng = np.random.default_rng(seed)
+SEVERITY_TO_CLAIM_STATUS = {
+    "Major Damage": ["open"],
+    "Minor Damage": ["pending review"],
+    "Total Loss": ["open", "total loss"],
+    "Trivial Damage": ["closed"],
+}
 
-    # Entity counts (Poisson-distributed)
-    entity_count_peril = rng.poisson(1.5, n_samples).astype(float)
-    entity_count_coverage = rng.poisson(2.0, n_samples).astype(float)
-    entity_count_money = rng.poisson(2.0, n_samples).astype(float)
-    entity_count_claim_status = rng.poisson(0.5, n_samples).astype(float)
-    entity_count_property_type = rng.poisson(1.0, n_samples).astype(float)
-    entity_count_vehicle = rng.poisson(0.3, n_samples).astype(float)
-    entity_count_total = (
-        entity_count_peril
-        + entity_count_coverage
-        + entity_count_money
-        + entity_count_claim_status
-        + entity_count_property_type
-        + entity_count_vehicle
-        + rng.poisson(4, n_samples)  # other entities (PERSON, ORG, DATE, etc.)
-    ).astype(float)
 
-    # Binary indicators
-    has_open_claim = rng.binomial(1, 0.15, n_samples).astype(float)
-    has_denied_claim = rng.binomial(1, 0.08, n_samples).astype(float)
-    has_fire_peril = rng.binomial(1, 0.20, n_samples).astype(float)
-    has_flood_peril = rng.binomial(1, 0.12, n_samples).astype(float)
-    has_earthquake_peril = rng.binomial(1, 0.05, n_samples).astype(float)
-    has_wind_peril = rng.binomial(1, 0.18, n_samples).astype(float)
-    has_cyber_coverage = rng.binomial(1, 0.10, n_samples).astype(float)
-    has_umbrella_coverage = rng.binomial(1, 0.25, n_samples).astype(float)
+def row_to_entity_summary(row: dict[str, str]) -> dict[str, list[str]]:
+    """Convert a CSV row into the entity summary format NER would produce."""
+    entities: dict[str, list[str]] = {}
 
-    # Monetary features (in millions)
-    max_monetary_value = rng.lognormal(-0.5, 1.2, n_samples)
-    mean_monetary_value = max_monetary_value * rng.uniform(0.3, 0.9, n_samples)
-    num_monetary_values = entity_count_money
+    # Perils from incident type
+    incident_type = row.get("incident_type", "")
+    perils = INCIDENT_TO_PERILS.get(incident_type, [])
+    if row.get("property_damage", "").upper() == "YES":
+        perils = [*perils, "property damage"]
+    if perils:
+        entities["PERIL"] = perils
 
-    # Derived features
-    prior_claims_indicator = (entity_count_claim_status > 0).astype(float)
-    property_risk_score = rng.beta(2, 5, n_samples)
-    coverage_breadth = np.clip(entity_count_coverage / 10, 0, 1)
-    peril_diversity = np.clip(entity_count_peril / 8, 0, 1)
+    # Coverage info from policy fields
+    coverages = []
+    csl = row.get("policy_csl", "")
+    if csl:
+        coverages.append(f"CSL {csl}")
+    deductible = row.get("policy_deductable", "")
+    if deductible and deductible != "?":
+        coverages.append(f"deductible ${deductible}")
+    umbrella = int(row.get("umbrella_limit", "0") or "0")
+    if umbrella > 0:
+        coverages.append(f"umbrella ${umbrella:,}")
+    if coverages:
+        entities["COVERAGE_TYPE"] = coverages
 
-    features = np.column_stack(
-        [
-            entity_count_total,
-            entity_count_money,
-            entity_count_peril,
-            entity_count_coverage,
-            entity_count_claim_status,
-            entity_count_property_type,
-            entity_count_vehicle,
-            has_open_claim,
-            has_denied_claim,
-            has_fire_peril,
-            has_flood_peril,
-            has_earthquake_peril,
-            has_wind_peril,
-            has_cyber_coverage,
-            has_umbrella_coverage,
-            max_monetary_value,
-            mean_monetary_value,
-            num_monetary_values,
-            prior_claims_indicator,
-            property_risk_score,
-            coverage_breadth,
-            peril_diversity,
-        ]
-    )
+    # Money values — only include info available BEFORE the claim outcome.
+    # total_claim_amount is the target, so including it would be data leakage.
+    money = []
+    premium = row.get("policy_annual_premium", "")
+    if premium and premium != "?":
+        money.append(f"${float(premium):,.2f}")
+    capital_gains = row.get("capital-gains", "")
+    if capital_gains and capital_gains != "?" and float(capital_gains) > 0:
+        money.append(f"${float(capital_gains):,.0f}")
+    if money:
+        entities["MONEY"] = money
 
-    # Generate claim probability from a latent risk score
-    latent_risk = (
-        0.3 * has_fire_peril
-        + 0.25 * has_flood_peril
-        + 0.35 * has_earthquake_peril
-        + 0.2 * has_wind_peril
-        + 0.4 * prior_claims_indicator
-        + 0.3 * has_open_claim
-        + 0.15 * has_denied_claim
-        + 0.2 * property_risk_score
-        + 0.15 * peril_diversity
-        + 0.1 * np.clip(max_monetary_value, 0, 5)
-        - 0.15 * has_umbrella_coverage
-        - 0.8  # bias term to center the distribution
-        + rng.normal(0, 0.3, n_samples)
-    )
-    claim_prob = 1 / (1 + np.exp(-latent_risk))
-    y_cls = rng.binomial(1, claim_prob).astype(float)
+    # Claim status from severity
+    severity = row.get("incident_severity", "")
+    statuses = SEVERITY_TO_CLAIM_STATUS.get(severity, [])
+    if statuses:
+        entities["CLAIM_STATUS"] = statuses
 
-    # Severity target (only meaningful for positive claims)
-    base_severity = max_monetary_value * 50_000 + 10_000
-    severity_mult = (
-        1.0
-        + 0.5 * has_fire_peril
-        + 0.3 * has_flood_peril
-        + 0.8 * has_earthquake_peril
-        + 0.2 * property_risk_score
-    )
-    y_sev = base_severity * severity_mult * rng.lognormal(0, 0.3, n_samples)
-    y_sev = y_sev * y_cls  # zero for non-claims
+    # Vehicle as property type proxy
+    make = row.get("auto_make", "")
+    model = row.get("auto_model", "")
+    if make:
+        entities["VEHICLE"] = [f"{make} {model}".strip()]
+
+    return entities
+
+
+def load_kaggle_data() -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Load real insurance claims and convert to feature vectors."""
+    features_list = []
+    y_sev_list = []
+
+    with open(DATA_PATH) as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            entity_summary = row_to_entity_summary(row)
+            feature_vec = extract_features(entity_summary)
+            features_list.append(feature_vec)
+
+            # Classification target: is this a high-cost claim?
+            # Median total_claim_amount is ~52k. Claims above median = 1.
+            total_claim = float(row.get("total_claim_amount", "0") or "0")
+            y_sev_list.append(total_claim)
+
+    features = np.array(features_list)
+    y_sev = np.array(y_sev_list)
+
+    # Binary target: above-median claim = high risk
+    median_claim = float(np.median(y_sev))
+    y_cls = (y_sev > median_claim).astype(float)
+
+    print(f"  median claim amount: ${median_claim:,.0f}")
+    print(f"  high-risk samples: {int(y_cls.sum())} ({y_cls.mean():.1%})")
 
     return features, y_cls, y_sev
 
@@ -149,14 +129,13 @@ def generate_synthetic_data(
 def train_models(features: np.ndarray, y_cls: np.ndarray, y_sev: np.ndarray) -> None:
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
-    # Split train/test
     n = len(features)
     split = int(n * 0.8)
     idx = np.arange(n)
     np.random.default_rng(42).shuffle(idx)
     train_idx, test_idx = idx[:split], idx[split:]
 
-    # --- Classification model ---
+    # --- Classification model (high-cost claim prediction) ---
     dtrain = xgb.DMatrix(features[train_idx], label=y_cls[train_idx], feature_names=FEATURE_NAMES)
     dtest = xgb.DMatrix(features[test_idx], label=y_cls[test_idx], feature_names=FEATURE_NAMES)
 
@@ -169,28 +148,21 @@ def train_models(features: np.ndarray, y_cls: np.ndarray, y_sev: np.ndarray) -> 
         "colsample_bytree": 0.8,
         "seed": 42,
     }
-    model_cls = xgb.train(cls_params, dtrain, num_boost_round=100, verbose_eval=False)
+    model_cls = xgb.train(cls_params, dtrain, num_boost_round=200, verbose_eval=False)
 
     preds = model_cls.predict(dtest)
     auc = roc_auc_score(y_cls[test_idx], preds)
-    print(f"Classification model AUC: {auc:.4f}")
+    print(f"  classification AUC: {auc:.4f}")
 
     cls_path = OUTPUT_DIR / "claim_probability.json"
     model_cls.save_model(str(cls_path))
-    print(f"Saved: {cls_path}")
+    print(f"  saved: {cls_path}")
 
-    # --- Severity model (train only on positive claims) ---
-    pos_train = train_idx[y_cls[train_idx] > 0]
-    pos_test = test_idx[y_cls[test_idx] > 0]
-
-    if len(pos_train) < 10:
-        print("Not enough positive samples for severity model")
-        return
-
+    # --- Severity model (total claim amount regression) ---
     dtrain_sev = xgb.DMatrix(
-        features[pos_train], label=y_sev[pos_train], feature_names=FEATURE_NAMES
+        features[train_idx], label=y_sev[train_idx], feature_names=FEATURE_NAMES
     )
-    dtest_sev = xgb.DMatrix(features[pos_test], label=y_sev[pos_test], feature_names=FEATURE_NAMES)
+    dtest_sev = xgb.DMatrix(features[test_idx], label=y_sev[test_idx], feature_names=FEATURE_NAMES)
 
     sev_params = {
         "objective": "reg:squarederror",
@@ -201,15 +173,17 @@ def train_models(features: np.ndarray, y_cls: np.ndarray, y_sev: np.ndarray) -> 
         "colsample_bytree": 0.8,
         "seed": 42,
     }
-    model_sev = xgb.train(sev_params, dtrain_sev, num_boost_round=100, verbose_eval=False)
+    model_sev = xgb.train(sev_params, dtrain_sev, num_boost_round=200, verbose_eval=False)
 
     sev_preds = model_sev.predict(dtest_sev)
-    rmse = np.sqrt(np.mean((y_sev[pos_test] - sev_preds) ** 2))
-    print(f"Severity model RMSE: ${rmse:,.0f}")
+    rmse = np.sqrt(np.mean((y_sev[test_idx] - sev_preds) ** 2))
+    mae = np.mean(np.abs(y_sev[test_idx] - sev_preds))
+    print(f"  severity RMSE: ${rmse:,.0f}")
+    print(f"  severity MAE: ${mae:,.0f}")
 
     sev_path = OUTPUT_DIR / "claim_severity.json"
     model_sev.save_model(str(sev_path))
-    print(f"Saved: {sev_path}")
+    print(f"  saved: {sev_path}")
 
     # Validate SHAP works
     import shap
@@ -217,16 +191,21 @@ def train_models(features: np.ndarray, y_cls: np.ndarray, y_sev: np.ndarray) -> 
     explainer = shap.TreeExplainer(model_cls)
     sample = dtest.slice([0])
     shap_values = explainer.shap_values(sample)
-    top_feature_idx = int(np.argmax(np.abs(shap_values[0])))
-    print(f"SHAP validation passed. Top feature: {FEATURE_NAMES[top_feature_idx]}")
+    top_idx = int(np.argmax(np.abs(shap_values[0])))
+    print(f"  SHAP validation passed. Top feature: {FEATURE_NAMES[top_idx]}")
 
 
 if __name__ == "__main__":
-    print("Generating synthetic insurance data...")
-    features, y_cls, y_sev = generate_synthetic_data()
-    print(
-        f"Generated {len(features)} samples, {int(y_cls.sum())} positive claims ({y_cls.mean():.1%})"
-    )
-    print("Training XGBoost models...")
+    if not DATA_PATH.exists():
+        print(f"Error: {DATA_PATH} not found.")
+        print(
+            "Download it first: kaggle datasets download -d buntyshah/auto-insurance-claims-data -p data/raw/ --unzip"
+        )
+        raise SystemExit(1)
+
+    print("Loading Kaggle Auto Insurance Claims data...")
+    features, y_cls, y_sev = load_kaggle_data()
+    print(f"  loaded {len(features)} claims, {len(FEATURE_NAMES)} features")
+    print("Training XGBoost models on real data...")
     train_models(features, y_cls, y_sev)
     print("Done.")

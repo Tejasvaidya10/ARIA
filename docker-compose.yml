@@ -1,0 +1,70 @@
+services:
+  ingestion:
+    build:
+      context: .
+      dockerfile: services/ingestion/Dockerfile
+    ports:
+      - "8000:8000"
+    env_file: .env
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  prediction:
+    build:
+      context: .
+      dockerfile: services/prediction/Dockerfile
+    ports:
+      - "8001:8001"
+    env_file: .env
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  rag:
+    build:
+      context: .
+      dockerfile: services/rag/Dockerfile
+    ports:
+      - "8002:8002"
+    env_file: .env
+    volumes:
+      - ./data:/app/data:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  llm:
+    build:
+      context: .
+      dockerfile: services/llm/Dockerfile
+    ports:
+      - "8003:8003"
+    env_file: .env
+    environment:
+      LLM_PREDICTION_SERVICE_URL: http://prediction:8001
+      LLM_RAG_SERVICE_URL: http://rag:8002
+    depends_on:
+      prediction:
+        condition: service_healthy
+      rag:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+networks:
+  default:
+    name: aria

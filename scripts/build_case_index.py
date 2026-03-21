@@ -1,14 +1,15 @@
-"""Generate synthetic historical insurance cases and build a FAISS index.
+"""Build a FAISS index from real Kaggle Auto Insurance Claims data.
 
-This creates a searchable vector database of past cases so the RAG service
-can find similar cases when evaluating a new submission. In production,
-these cases would come from a real claims management system.
+Reads data/raw/insurance_claims.csv, converts each claim into an entity summary
+(same format the NER pipeline produces), embeds the text, and stores everything
+in a FAISS index for the RAG service to search.
 
 Usage:
     python -m scripts.build_case_index
 """
 
-import random
+import csv
+from pathlib import Path
 
 import numpy as np
 
@@ -16,136 +17,125 @@ from services.rag.core.schemas import CaseRecord
 from services.rag.services.embedder import embed_batch, entities_to_text, load_embedding_model
 from services.rag.services.index_manager import FAISSIndexManager
 
-PERILS = [
-    "fire",
-    "flood",
-    "earthquake",
-    "wind",
-    "hail",
-    "lightning",
-    "theft",
-    "vandalism",
-    "water damage",
-    "cyber attack",
-]
-COVERAGES = [
-    "general liability",
-    "property",
-    "business interruption",
-    "professional liability",
-    "cyber liability",
-    "umbrella",
-    "workers compensation",
-    "commercial auto",
-    "directors and officers",
-]
-PROPERTY_TYPES = [
-    "office",
-    "warehouse",
-    "retail",
-    "restaurant",
-    "manufacturing",
-    "residential",
-    "hotel",
-    "hospital",
-    "school",
-    "data center",
-]
-CLAIM_STATUSES = ["open", "closed", "denied", "pending review", "settled"]
-OUTCOMES = [
-    "claim approved, paid ${amount}",
-    "claim denied due to exclusion",
-    "claim settled for ${amount}",
-    "no claim filed during policy term",
-    "partial claim approved for ${amount}",
-    "claim pending litigation",
-]
-RISK_TIERS = ["LOW", "MODERATE", "HIGH", "CRITICAL"]
+DATA_PATH = Path("data/raw/insurance_claims.csv")
+INDEX_PATH = "data/faiss/case_index.faiss"
+STORE_PATH = "data/faiss/case_store.json"
+
+RISK_TIERS = {
+    "Trivial Damage": "LOW",
+    "Minor Damage": "MODERATE",
+    "Major Damage": "HIGH",
+    "Total Loss": "CRITICAL",
+}
 
 
-def _random_money() -> str:
-    amount = random.choice(
-        [
-            random.randint(10_000, 500_000),
-            random.randint(500_000, 5_000_000),
-            random.randint(1_000_000, 50_000_000),
-        ]
-    )
-    return f"${amount:,}"
+def row_to_case(case_id: int, row: dict[str, str]) -> tuple[dict[str, list[str]], CaseRecord]:
+    """Convert a CSV row into an entity summary and a CaseRecord."""
+    entities: dict[str, list[str]] = {}
 
+    # Incident type as peril
+    incident = row.get("incident_type", "")
+    if incident:
+        entities["PERIL"] = [incident.lower()]
+    if row.get("property_damage", "").upper() == "YES":
+        entities.setdefault("PERIL", []).append("property damage")
 
-def _generate_case(case_id: int) -> tuple[dict[str, list[str]], CaseRecord]:
-    """Generate one synthetic case with entities and metadata."""
-    num_perils = random.randint(1, 4)
-    num_coverages = random.randint(1, 5)
-    num_money = random.randint(0, 3)
+    # Coverage info
+    coverages = []
+    csl = row.get("policy_csl", "")
+    if csl:
+        coverages.append(f"CSL {csl}")
+    umbrella = int(row.get("umbrella_limit", "0") or "0")
+    if umbrella > 0:
+        coverages.append(f"umbrella ${umbrella:,}")
+    if coverages:
+        entities["COVERAGE_TYPE"] = coverages
 
-    entities: dict[str, list[str]] = {
-        "PERIL": random.sample(PERILS, num_perils),
-        "COVERAGE_TYPE": random.sample(COVERAGES, num_coverages),
-        "PROPERTY_TYPE": [random.choice(PROPERTY_TYPES)],
-        "MONEY": [_random_money() for _ in range(num_money)],
-    }
+    # Money (pre-claim info only)
+    premium = row.get("policy_annual_premium", "")
+    if premium and premium != "?":
+        entities["MONEY"] = [f"${float(premium):,.2f}"]
 
-    if random.random() > 0.4:
-        entities["CLAIM_STATUS"] = [random.choice(CLAIM_STATUSES)]
+    # Severity as claim status
+    severity = row.get("incident_severity", "")
+    if severity:
+        entities["CLAIM_STATUS"] = [severity.lower()]
 
-    policy_id = f"PLY-{random.randint(2018, 2025)}-{case_id:05d}"
+    # Vehicle
+    make = row.get("auto_make", "")
+    model_name = row.get("auto_model", "")
+    if make:
+        entities["VEHICLE"] = [f"{make} {model_name}".strip()]
 
-    perils_str = ", ".join(entities["PERIL"])
-    prop = entities["PROPERTY_TYPE"][0]
-    summary = f"{prop} property with {perils_str} exposure"
+    # Build case record
+    total_claim = float(row.get("total_claim_amount", "0") or "0")
+    risk_tier = RISK_TIERS.get(severity, "MODERATE")
+    fraud = row.get("fraud_reported", "N")
 
-    claim_amount = random.uniform(0, 10_000_000)
-    outcome_template = random.choice(OUTCOMES)
-    outcome = outcome_template.replace("${amount}", f"${claim_amount:,.0f}")
+    summary_parts = []
+    if incident:
+        summary_parts.append(incident.lower())
+    if make:
+        summary_parts.append(f"{make} {model_name}")
+    summary_parts.append(f"in {row.get('incident_state', '?')}")
+    summary_parts.append(f"severity: {severity.lower()}")
 
-    tier_weights = [0.3, 0.35, 0.25, 0.1]
-    risk_tier = random.choices(RISK_TIERS, weights=tier_weights, k=1)[0]
+    outcome = f"claim ${total_claim:,.0f}"
+    if fraud == "Y":
+        outcome += " (fraud reported)"
+    else:
+        outcome += " (no fraud)"
 
     record = CaseRecord(
         case_id=case_id,
-        policy_id=policy_id,
-        summary=summary,
+        policy_id=row.get("policy_number", str(case_id)),
+        summary=", ".join(summary_parts),
         outcome=outcome,
         risk_tier=risk_tier,
-        claim_amount=round(claim_amount, 2),
+        claim_amount=total_claim,
     )
 
     return entities, record
 
 
 def main() -> None:
-    num_cases = 500
-    print(f"generating {num_cases} synthetic cases...")
+    if not DATA_PATH.exists():
+        print(f"Error: {DATA_PATH} not found.")
+        print(
+            "Download: kaggle datasets download -d buntyshah/auto-insurance-claims-data -p data/raw/ --unzip"
+        )
+        raise SystemExit(1)
 
+    print("loading claims data...")
     all_entities: list[dict[str, list[str]]] = []
     all_records: list[CaseRecord] = []
 
-    for i in range(num_cases):
-        entities, record = _generate_case(i)
-        all_entities.append(entities)
-        all_records.append(record)
+    with open(DATA_PATH) as f:
+        reader = csv.DictReader(f)
+        for i, row in enumerate(reader):
+            entities, record = row_to_case(i, row)
+            all_entities.append(entities)
+            all_records.append(record)
 
-    print("loading embedding model (first run downloads ~80MB)...")
+    print(f"  loaded {len(all_records)} claims")
+
+    print("loading embedding model...")
     model = load_embedding_model("all-MiniLM-L6-v2")
 
     texts = [entities_to_text(e) for e in all_entities]
     print(f"embedding {len(texts)} cases...")
     vectors = embed_batch(model, texts)
 
+    Path(INDEX_PATH).parent.mkdir(parents=True, exist_ok=True)
     manager = FAISSIndexManager(dimension=vectors.shape[1])
     manager.add(vectors, all_records)
-
-    index_path = "data/faiss/case_index.faiss"
-    store_path = "data/faiss/case_store.json"
-    manager.save(index_path, store_path)
+    manager.save(INDEX_PATH, STORE_PATH)
 
     print(f"index saved: {manager.total_indexed} vectors ({vectors.shape[1]}d)")
-    print(f"  index: {index_path}")
-    print(f"  store: {store_path}")
+    print(f"  index: {INDEX_PATH}")
+    print(f"  store: {STORE_PATH}")
 
-    # quick sanity check — search for a case similar to the first one
+    # sanity check — search for a case similar to the first one
     query = embed_batch(model, [texts[0]])
     results = manager.search(query, top_k=3)
     print("\nsanity check — top 3 matches for case 0:")
@@ -154,6 +144,5 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    random.seed(42)
     np.random.seed(42)
     main()

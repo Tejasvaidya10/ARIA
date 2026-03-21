@@ -10,8 +10,16 @@ __pycache__
 *.pyc
 .env
 .env.local
+.env.production
+.venv
+venv
 node_modules
 frontend/dist
 *.md
 !README.md
 Makefile
+.DS_Store
+.claude
+htmlcov
+.coverage
+*.log
