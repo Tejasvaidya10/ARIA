@@ -35,16 +35,13 @@ INCIDENT_TO_PERILS = {
     "Parked Car": ["vandalism"],
 }
 
-SEVERITY_TO_CLAIM_STATUS = {
-    "Major Damage": ["open"],
-    "Minor Damage": ["pending review"],
-    "Total Loss": ["open", "total loss"],
-    "Trivial Damage": ["closed"],
-}
-
 
 def row_to_entity_summary(row: dict[str, str]) -> dict[str, list[str]]:
-    """Convert a CSV row into the entity summary format NER would produce."""
+    """Convert a CSV row into the entity summary format NER would produce.
+
+    Only uses pre-claim information — nothing derived from incident_severity
+    (the target variable) to avoid data leakage.
+    """
     entities: dict[str, list[str]] = {}
 
     # Perils from incident type
@@ -81,24 +78,53 @@ def row_to_entity_summary(row: dict[str, str]) -> dict[str, list[str]]:
     if money:
         entities["MONEY"] = money
 
-    # Claim status from severity
-    severity = row.get("incident_severity", "")
-    statuses = SEVERITY_TO_CLAIM_STATUS.get(severity, [])
-    if statuses:
-        entities["CLAIM_STATUS"] = statuses
-
-    # Vehicle as property type proxy
+    # Vehicle with year for age calculation
     make = row.get("auto_make", "")
     model = row.get("auto_model", "")
+    year = row.get("auto_year", "")
     if make:
-        entities["VEHICLE"] = [f"{make} {model}".strip()]
+        vehicle_str = f"{make} {model}".strip()
+        if year:
+            vehicle_str += f" ({year})"
+        entities["VEHICLE"] = [vehicle_str]
+
+    # Injury information — would appear in any incident report
+    injuries = row.get("bodily_injuries", "0")
+    if injuries and injuries != "?" and int(injuries) > 0:
+        entities["INJURY"] = [f"{injuries} bodily injuries"]
+
+    # Incident details — facts a claims adjuster or NER pipeline would extract
+    details = []
+    num_vehicles = row.get("number_of_vehicles_involved", "1")
+    if num_vehicles and num_vehicles != "?" and int(num_vehicles) > 1:
+        details.append(f"{num_vehicles} vehicles involved")
+    witnesses = row.get("witnesses", "0")
+    if witnesses and witnesses != "?" and int(witnesses) > 0:
+        details.append(f"{witnesses} witnesses")
+    authority = row.get("authorities_contacted", "")
+    if authority and authority.lower() in ("police", "fire", "ambulance"):
+        details.append(f"{authority.lower()} contacted")
+    if details:
+        entities["INCIDENT_DETAIL"] = details
 
     return entities
+
+
+# Map incident_severity to a binary target.
+# HIGH risk = Major Damage or Total Loss (would be scored HIGH/CRITICAL).
+# LOW risk = Trivial Damage or Minor Damage (would be scored LOW/MODERATE).
+SEVERITY_TO_RISK = {
+    "Trivial Damage": 0.0,
+    "Minor Damage": 0.0,
+    "Major Damage": 1.0,
+    "Total Loss": 1.0,
+}
 
 
 def load_kaggle_data() -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Load real insurance claims and convert to feature vectors."""
     features_list = []
+    y_cls_list = []
     y_sev_list = []
 
     with open(DATA_PATH) as f:
@@ -108,20 +134,21 @@ def load_kaggle_data() -> tuple[np.ndarray, np.ndarray, np.ndarray]:
             feature_vec = extract_features(entity_summary)
             features_list.append(feature_vec)
 
-            # Classification target: is this a high-cost claim?
-            # Median total_claim_amount is ~52k. Claims above median = 1.
+            # Classification target: is this a severe incident?
+            # Based on incident_severity directly, not dollar amounts.
+            severity = row.get("incident_severity", "")
+            y_cls_list.append(SEVERITY_TO_RISK.get(severity, 0.0))
+
             total_claim = float(row.get("total_claim_amount", "0") or "0")
             y_sev_list.append(total_claim)
 
     features = np.array(features_list)
+    y_cls = np.array(y_cls_list)
     y_sev = np.array(y_sev_list)
 
-    # Binary target: above-median claim = high risk
-    median_claim = float(np.median(y_sev))
-    y_cls = (y_sev > median_claim).astype(float)
-
-    print(f"  median claim amount: ${median_claim:,.0f}")
-    print(f"  high-risk samples: {int(y_cls.sum())} ({y_cls.mean():.1%})")
+    high_risk = int(y_cls.sum())
+    print(f"  high-risk samples (Major/Total Loss): {high_risk} ({high_risk / len(y_cls):.1%})")
+    print(f"  low-risk samples (Trivial/Minor): {len(y_cls) - high_risk}")
 
     return features, y_cls, y_sev
 

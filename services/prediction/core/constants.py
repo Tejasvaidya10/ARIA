@@ -21,6 +21,13 @@ FEATURE_NAMES = [
     "property_risk_score",
     "coverage_breadth",
     "peril_diversity",
+    # v2 features: incident details a real NER pipeline would extract
+    "bodily_injury_count",
+    "vehicles_involved",
+    "witness_count",
+    "police_involved",
+    "vehicle_age",
+    "multi_vehicle_incident",
 ]
 
 FEATURE_DISPLAY_NAMES: dict[str, str] = {
@@ -46,6 +53,12 @@ FEATURE_DISPLAY_NAMES: dict[str, str] = {
     "property_risk_score": "Property construction risk",
     "coverage_breadth": "Breadth of coverage requested",
     "peril_diversity": "Variety of perils",
+    "bodily_injury_count": "Bodily injuries reported",
+    "vehicles_involved": "Vehicles involved in incident",
+    "witness_count": "Witnesses present",
+    "police_involved": "Police contacted",
+    "vehicle_age": "Vehicle age (years)",
+    "multi_vehicle_incident": "Multi-vehicle incident",
 }
 
 # Maps PROPERTY_TYPE entity text to a risk score (0 = safest, 1 = riskiest).

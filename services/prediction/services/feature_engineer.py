@@ -17,6 +17,8 @@ def extract_features(entity_summary: dict[str, list[str]]) -> np.ndarray:  # typ
     claim_statuses = entity_summary.get("CLAIM_STATUS", [])
     property_types = entity_summary.get("PROPERTY_TYPE", [])
     vehicles = entity_summary.get("VEHICLE", [])
+    injuries = entity_summary.get("INJURY", [])
+    incident_details = entity_summary.get("INCIDENT_DETAIL", [])
 
     all_count = sum(len(v) for v in entity_summary.values())
     parsed = [_parse_money(m) for m in money]
@@ -45,6 +47,13 @@ def extract_features(entity_summary: dict[str, list[str]]) -> np.ndarray:  # typ
         "property_risk_score": _compute_property_risk(property_types),
         "coverage_breadth": min(len(coverages) / 10.0, 1.0),
         "peril_diversity": min(len(perils) / 8.0, 1.0),
+        # v2: incident details
+        "bodily_injury_count": _parse_count(injuries, "injur"),
+        "vehicles_involved": _parse_count(incident_details, "vehicle"),
+        "witness_count": _parse_count(incident_details, "witness"),
+        "police_involved": _has_keyword(incident_details, "police"),
+        "vehicle_age": _parse_vehicle_age(vehicles),
+        "multi_vehicle_incident": _has_keyword(perils, "multi-vehicle"),
     }
 
     return np.array([features[name] for name in FEATURE_NAMES], dtype=np.float64)
@@ -83,3 +92,32 @@ def _compute_property_risk(property_types: list[str]) -> float:
         return DEFAULT_PROPERTY_RISK
     scores = [PROPERTY_RISK_MAP.get(pt.lower(), DEFAULT_PROPERTY_RISK) for pt in property_types]
     return max(scores)
+
+
+def _parse_count(entities: list[str], keyword: str) -> float:
+    """Extract a numeric count from entity strings containing a keyword.
+
+    Handles formats like "2 bodily injuries", "3 vehicles involved",
+    or just "bodily injury" (defaults to 1 if keyword found but no number).
+    """
+    for entity in entities:
+        lower = entity.lower()
+        if keyword in lower:
+            match = re.search(r"(\d+)", lower)
+            if match:
+                return float(match.group(1))
+            return 1.0
+    return 0.0
+
+
+def _parse_vehicle_age(vehicles: list[str]) -> float:
+    """Extract vehicle age from VEHICLE entities like 'Dodge Neon (2003)'.
+
+    Returns age in years relative to 2024, or 0 if no year found.
+    """
+    for v in vehicles:
+        match = re.search(r"\b(19|20)\d{2}\b", v)
+        if match:
+            year = int(match.group())
+            return max(float(2024 - year), 0.0)
+    return 0.0

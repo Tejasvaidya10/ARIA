@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARIA - Automated Risk Intelligence Assistant</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        sidebar: { 900: '#070a14', 800: '#0b1120', 700: '#111827', 600: '#1e293b' },
+        surface: { 50: '#f8fafc', 100: '#f1f5f9', 200: '#e2e8f0', 300: '#cbd5e1' },
+        ink: { 900: '#0f172a', 800: '#1e293b', 700: '#334155', 500: '#64748b', 400: '#94a3b8', 300: '#cbd5e1' },
+        risk: { low: '#10b981', moderate: '#f59e0b', high: '#f97316', critical: '#ef4444' },
+        brand: { cyan: '#00d4ff', blue: '#1e3a8a', purple: '#8b5cf6' },
+      }
+    }
+  }
+}
+</script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
+  body { font-family: 'Poppins', sans-serif; }
+  .font-mono { font-family: 'Fira Code', monospace; }
+  .brand-gradient { background: linear-gradient(135deg, #00d4ff, #1e3a8a, #8b5cf6); }
+  .brand-gradient-text { background: linear-gradient(135deg, #00d4ff, #6366f1, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .brand-glow { box-shadow: 0 0 20px rgba(0, 212, 255, 0.15), 0 0 40px rgba(139, 92, 246, 0.08); }
+  .sidebar-active { background: linear-gradient(90deg, rgba(0, 212, 255, 0.12), transparent); border-left: 2px solid #00d4ff; }
+  .sidebar-item { border-left: 2px solid transparent; transition: all 0.15s; }
+  .sidebar-item:hover { background: rgba(255, 255, 255, 0.04); }
+  .upload-zone { border: 2px dashed #cbd5e1; transition: all 0.2s; }
+  .upload-zone:hover { border-color: #00d4ff; background: rgba(0, 212, 255, 0.03); }
+  .risk-bar { transition: width 0.8s ease-out; }
+  .fade-in { animation: fadeIn 0.4s ease-out; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .shap-positive { background: linear-gradient(90deg, transparent, rgba(239, 68, 68, 0.08)); }
+  .shap-negative { background: linear-gradient(270deg, transparent, rgba(16, 185, 129, 0.08)); }
+  .card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; transition: box-shadow 0.15s; }
+  .card:hover { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); }
+  .status-dot { width: 6px; height: 6px; border-radius: 50%; }
+  .pipeline-step { position: relative; }
+  .pipeline-step::before { content: ''; position: absolute; left: 11px; top: 24px; bottom: -8px; width: 1px; background: #e2e8f0; }
+  .pipeline-step:last-child::before { display: none; }
+</style>
+</head>
+<body class="bg-surface-100 min-h-screen flex">
+
+<!-- Sidebar -->
+<aside class="w-64 bg-sidebar-800 min-h-screen flex flex-col fixed left-0 top-0 bottom-0 z-10">
+  <!-- Logo -->
+  <div class="px-5 py-5 border-b border-white/5">
+    <div class="flex items-center gap-3">
+      <img src="../assets/aria-logo.png" alt="ARIA" class="h-8 w-auto">
+    </div>
+    <p class="text-white/30 text-xs mt-2">Automated Risk Intelligence</p>
+  </div>
+
+  <!-- Nav items -->
+  <nav class="flex-1 py-4 px-3">
+    <p class="text-white/25 text-[10px] font-semibold uppercase tracking-widest px-3 mb-2">Analysis</p>
+    <button id="nav-upload" onclick="showView('upload')" class="sidebar-item sidebar-active w-full flex items-center gap-3 px-3 py-2.5 rounded-r-lg text-sm text-white/90 mb-0.5">
+      <svg class="w-4 h-4 text-brand-cyan" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+      Upload
+    </button>
+    <button id="nav-dashboard" onclick="showView('dashboard')" class="sidebar-item w-full flex items-center gap-3 px-3 py-2.5 rounded-r-lg text-sm text-white/50 mb-0.5">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+      Dashboard
+    </button>
+    <button class="sidebar-item w-full flex items-center gap-3 px-3 py-2.5 rounded-r-lg text-sm text-white/50 mb-0.5 cursor-default opacity-40">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      History
+    </button>
+
+    <p class="text-white/25 text-[10px] font-semibold uppercase tracking-widest px-3 mt-6 mb-2">System</p>
+    <button class="sidebar-item w-full flex items-center gap-3 px-3 py-2.5 rounded-r-lg text-sm text-white/50 mb-0.5 cursor-default opacity-40">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      Settings
+    </button>
+  </nav>
+
+  <!-- Pipeline status -->
+  <div class="px-5 py-4 border-t border-white/5">
+    <p class="text-white/25 text-[10px] font-semibold uppercase tracking-widest mb-3">Pipeline</p>
+    <div class="space-y-2">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="status-dot bg-emerald-400"></span>
+          <span class="text-white/50 text-xs">Ingestion</span>
+        </div>
+        <span class="text-white/20 text-[10px] font-mono">:8000</span>
+      </div>
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="status-dot bg-emerald-400"></span>
+          <span class="text-white/50 text-xs">Prediction</span>
+        </div>
+        <span class="text-white/20 text-[10px] font-mono">:8001</span>
+      </div>
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="status-dot bg-emerald-400"></span>
+          <span class="text-white/50 text-xs">RAG</span>
+        </div>
+        <span class="text-white/20 text-[10px] font-mono">:8002</span>
+      </div>
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="status-dot bg-emerald-400"></span>
+          <span class="text-white/50 text-xs">LLM</span>
+        </div>
+        <span class="text-white/20 text-[10px] font-mono">:8003</span>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- Main content area -->
+<main class="ml-64 flex-1 min-h-screen">
+
+  <!-- Top bar -->
+  <header class="bg-white border-b border-surface-200 px-8 py-4 flex items-center justify-between sticky top-0 z-[5]">
+    <div>
+      <h2 id="page-title" class="text-lg font-semibold text-ink-900">Submit Document</h2>
+      <p id="page-subtitle" class="text-xs text-ink-500 mt-0.5">Upload a policy, claim, or underwriting submission</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <div class="flex items-center gap-2 px-3 py-1.5 bg-surface-50 rounded-lg border border-surface-200">
+        <span class="status-dot bg-emerald-400"></span>
+        <span class="text-xs text-ink-500">All services online</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- UPLOAD VIEW -->
+  <div id="view-upload" class="px-8 py-8 fade-in">
+    <div class="max-w-2xl mx-auto">
+      <div class="upload-zone rounded-xl p-14 text-center cursor-pointer bg-white">
+        <div class="w-16 h-16 mx-auto mb-5 rounded-2xl brand-gradient flex items-center justify-center brand-glow">
+          <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+          </svg>
+        </div>
+        <p class="text-ink-800 font-medium mb-1">Drag and drop your PDF here</p>
+        <p class="text-ink-400 text-sm mb-5">or click to browse files</p>
+        <span class="inline-block px-5 py-2.5 brand-gradient text-white text-sm font-medium rounded-lg cursor-pointer hover:opacity-90 transition brand-glow">Select File</span>
+        <p class="text-ink-300 text-xs mt-5">PDF only, max 25MB, up to 200 pages</p>
+      </div>
+
+      <!-- Recent Submissions -->
+      <div class="mt-10">
+        <h3 class="text-xs font-semibold text-ink-400 uppercase tracking-wider mb-4">Recent Submissions</h3>
+        <div class="space-y-2">
+          <div class="card flex items-center justify-between px-4 py-3.5 cursor-pointer hover:border-brand-cyan/30" onclick="showView('dashboard')">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-lg bg-surface-100 flex items-center justify-center">
+                <svg class="w-4 h-4 text-ink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              </div>
+              <div>
+                <p class="text-sm font-medium text-ink-800">commercial_property_policy.pdf</p>
+                <p class="text-xs text-ink-400">Submitted 2 hours ago</p>
+              </div>
+            </div>
+            <span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-red-50 text-risk-critical">HIGH</span>
+          </div>
+          <div class="card flex items-center justify-between px-4 py-3.5">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-lg bg-surface-100 flex items-center justify-center">
+                <svg class="w-4 h-4 text-ink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              </div>
+              <div>
+                <p class="text-sm font-medium text-ink-800">auto_claim_saab_92x.pdf</p>
+                <p class="text-xs text-ink-400">Submitted yesterday</p>
+              </div>
+            </div>
+            <span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-emerald-50 text-risk-low">LOW</span>
+          </div>
+          <div class="card flex items-center justify-between px-4 py-3.5">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-lg bg-surface-100 flex items-center justify-center">
+                <svg class="w-4 h-4 text-ink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              </div>
+              <div>
+                <p class="text-sm font-medium text-ink-800">workers_comp_renewal.pdf</p>
+                <p class="text-xs text-ink-400">3 days ago</p>
+              </div>
+            </div>
+            <span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-amber-50 text-risk-moderate">MODERATE</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD VIEW -->
+  <div id="view-dashboard" class="px-8 py-8 hidden">
+
+    <!-- Header row -->
+    <div class="flex items-start justify-between mb-6 fade-in">
+      <div>
+        <div class="flex items-center gap-3">
+          <h1 class="text-xl font-semibold text-ink-900">Risk Analysis</h1>
+          <span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-red-50 text-risk-critical">HIGH RISK</span>
+        </div>
+        <p class="text-ink-500 text-sm mt-1">commercial_property_policy.pdf &mdash; #a3f8-29d1</p>
+      </div>
+      <div class="flex gap-3">
+        <button class="px-4 py-2 text-sm font-medium text-ink-700 bg-white border border-surface-200 rounded-lg hover:bg-surface-50 cursor-pointer transition">Export PDF</button>
+        <button onclick="showView('upload')" class="px-4 py-2 text-sm font-medium text-white brand-gradient rounded-lg hover:opacity-90 cursor-pointer transition brand-glow">New Submission</button>
+      </div>
+    </div>
+
+    <!-- KPI cards row -->
+    <div class="grid grid-cols-4 gap-4 mb-6 fade-in">
+      <!-- Risk Tier -->
+      <div class="card p-5">
+        <p class="text-[10px] font-semibold text-ink-400 uppercase tracking-wider mb-3">Risk Tier</p>
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-xl bg-orange-50 flex items-center justify-center">
+            <svg class="w-5 h-5 text-risk-high" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
+          </div>
+          <div>
+            <p class="text-2xl font-bold text-risk-high">HIGH</p>
+            <p class="text-[11px] text-ink-400">Above threshold</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Claim Probability -->
+      <div class="card p-5">
+        <p class="text-[10px] font-semibold text-ink-400 uppercase tracking-wider mb-3">Claim Probability</p>
+        <p class="text-3xl font-bold text-ink-900">72.4<span class="text-lg text-ink-400">%</span></p>
+        <div class="mt-2.5 w-full bg-surface-100 rounded-full h-1.5">
+          <div class="risk-bar h-1.5 rounded-full" style="width: 72.4%; background: linear-gradient(90deg, #f97316, #ef4444)"></div>
+        </div>
+      </div>
+
+      <!-- Predicted Amount -->
+      <div class="card p-5">
+        <p class="text-[10px] font-semibold text-ink-400 uppercase tracking-wider mb-3">Predicted Claim</p>
+        <p class="text-3xl font-bold text-ink-900"><span class="text-lg text-ink-400">$</span>84,230</p>
+        <p class="text-[11px] text-ink-400 mt-2">XGBoost severity model</p>
+      </div>
+
+      <!-- Confidence -->
+      <div class="card p-5">
+        <p class="text-[10px] font-semibold text-ink-400 uppercase tracking-wider mb-3">Model Confidence</p>
+        <p class="text-3xl font-bold text-ink-900">65.7<span class="text-lg text-ink-400">%</span></p>
+        <p class="text-[11px] text-ink-400 mt-2">Latency: 33ms</p>
+      </div>
+    </div>
+
+    <!-- Main content grid -->
+    <div class="grid grid-cols-3 gap-5 fade-in">
+
+      <!-- Left column: SHAP + Entities -->
+      <div class="col-span-1 space-y-5">
+        <!-- SHAP Risk Factors -->
+        <div class="card p-5">
+          <h3 class="text-sm font-semibold text-ink-900 mb-0.5">Key Risk Factors</h3>
+          <p class="text-[11px] text-ink-400 mb-4">SHAP feature importance</p>
+
+          <div class="space-y-2">
+            <div class="shap-positive rounded-lg p-3">
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="text-sm font-medium text-ink-800">Number of perils</span>
+                <span class="text-xs font-semibold text-red-500 font-mono">+0.34</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <div class="flex-1 bg-surface-100 rounded-full h-1.5">
+                  <div class="bg-red-400 h-1.5 rounded-full" style="width: 85%"></div>
+                </div>
+                <span class="text-[10px] text-red-500 font-medium w-20 text-right">increases risk</span>
+              </div>
+            </div>
+
+            <div class="shap-positive rounded-lg p-3">
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="text-sm font-medium text-ink-800">Prior claims indicator</span>
+                <span class="text-xs font-semibold text-red-500 font-mono">+0.28</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <div class="flex-1 bg-surface-100 rounded-full h-1.5">
+                  <div class="bg-red-400 h-1.5 rounded-full" style="width: 70%"></div>
+                </div>
+                <span class="text-[10px] text-red-500 font-medium w-20 text-right">increases risk</span>
+              </div>
+            </div>
+
+            <div class="shap-positive rounded-lg p-3">
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="text-sm font-medium text-ink-800">Property risk score</span>
+                <span class="text-xs font-semibold text-red-500 font-mono">+0.19</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <div class="flex-1 bg-surface-100 rounded-full h-1.5">
+                  <div class="bg-red-400 h-1.5 rounded-full" style="width: 48%"></div>
+                </div>
+                <span class="text-[10px] text-red-500 font-medium w-20 text-right">increases risk</span>
+              </div>
+            </div>
+
+            <div class="shap-negative rounded-lg p-3">
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="text-sm font-medium text-ink-800">Umbrella coverage</span>
+                <span class="text-xs font-semibold text-emerald-600 font-mono">-0.15</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <div class="flex-1 bg-surface-100 rounded-full h-1.5">
+                  <div class="bg-emerald-400 h-1.5 rounded-full" style="width: 38%"></div>
+                </div>
+                <span class="text-[10px] text-emerald-600 font-medium w-20 text-right">decreases risk</span>
+              </div>
+            </div>
+
+            <div class="shap-negative rounded-lg p-3">
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="text-sm font-medium text-ink-800">Highest monetary value</span>
+                <span class="text-xs font-semibold text-emerald-600 font-mono">-0.11</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <div class="flex-1 bg-surface-100 rounded-full h-1.5">
+                  <div class="bg-emerald-400 h-1.5 rounded-full" style="width: 28%"></div>
+                </div>
+                <span class="text-[10px] text-emerald-600 font-medium w-20 text-right">decreases risk</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Extracted Entities -->
+        <div class="card p-5">
+          <h3 class="text-sm font-semibold text-ink-900 mb-3">Extracted Entities</h3>
+          <div class="space-y-2.5">
+            <div>
+              <span class="inline-block px-2 py-0.5 text-[10px] font-semibold bg-red-50 text-red-600 rounded mb-1 uppercase tracking-wide">Peril</span>
+              <p class="text-sm text-ink-700">fire, flood, wind damage</p>
+            </div>
+            <div>
+              <span class="inline-block px-2 py-0.5 text-[10px] font-semibold bg-blue-50 text-blue-600 rounded mb-1 uppercase tracking-wide">Coverage</span>
+              <p class="text-sm text-ink-700">commercial general liability, umbrella $2M</p>
+            </div>
+            <div>
+              <span class="inline-block px-2 py-0.5 text-[10px] font-semibold bg-emerald-50 text-emerald-600 rounded mb-1 uppercase tracking-wide">Money</span>
+              <p class="text-sm text-ink-700">$1,500,000 property value, $45,000 annual premium</p>
+            </div>
+            <div>
+              <span class="inline-block px-2 py-0.5 text-[10px] font-semibold bg-amber-50 text-amber-600 rounded mb-1 uppercase tracking-wide">Property</span>
+              <p class="text-sm text-ink-700">wood-frame commercial warehouse</p>
+            </div>
+            <div>
+              <span class="inline-block px-2 py-0.5 text-[10px] font-semibold bg-purple-50 text-purple-600 rounded mb-1 uppercase tracking-wide">Claim Status</span>
+              <p class="text-sm text-ink-700">2 prior claims (open), 1 denied</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Center column: Underwriter Narrative -->
+      <div class="col-span-1">
+        <div class="card p-5 h-full">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="text-sm font-semibold text-ink-900">Underwriter Narrative</h3>
+              <p class="text-[11px] text-ink-400">Generated by Claude claude-sonnet-4-6</p>
+            </div>
+            <button class="p-1.5 text-ink-300 hover:text-ink-600 rounded-md hover:bg-surface-50 cursor-pointer transition">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+            </button>
+          </div>
+
+          <div class="text-sm text-ink-700 leading-relaxed space-y-4">
+            <div>
+              <p class="text-xs font-semibold text-ink-900 uppercase tracking-wide mb-1.5">Risk Assessment Summary</p>
+              <p>This submission presents a <strong class="text-risk-high">HIGH risk</strong> profile for a wood-frame commercial warehouse valued at $1.5M with an annual premium of $45,000. The XGBoost model assigns a 72.4% claim probability with a predicted severity of $84,230.</p>
+            </div>
+
+            <div>
+              <p class="text-xs font-semibold text-ink-900 uppercase tracking-wide mb-1.5">Key Concerns</p>
+              <p>The property faces exposure to three distinct perils (fire, flood, and wind damage), which is the primary driver of elevated risk per SHAP analysis (+0.34 contribution). The wood-frame construction significantly amplifies fire risk. Additionally, the applicant has two open prior claims and one denied claim, indicating adverse claims history (+0.28 SHAP).</p>
+            </div>
+
+            <div>
+              <p class="text-xs font-semibold text-ink-900 uppercase tracking-wide mb-1.5">Mitigating Factors</p>
+              <p>The $2M umbrella coverage provides meaningful protection and is the strongest mitigating factor identified (-0.15 SHAP). The property value of $1.5M suggests a mid-market commercial operation with adequate asset base.</p>
+            </div>
+
+            <div>
+              <p class="text-xs font-semibold text-ink-900 uppercase tracking-wide mb-1.5">Historical Comparison</p>
+              <p>RAG retrieval identified 5 similar cases from the claims database. Comparable wood-frame properties with multi-peril exposure showed a 68% claim rate with average severity of $71,400. One comparable case from Travelers' 10-K disclosure notes elevated catastrophe exposure for wood-frame structures in wind-prone regions.</p>
+            </div>
+
+            <div>
+              <p class="text-xs font-semibold text-ink-900 uppercase tracking-wide mb-1.5">Recommendation</p>
+              <p>Recommend additional underwriting scrutiny. Consider requiring updated fire suppression certification, flood zone verification, and wind mitigation documentation before binding. Premium adequacy should be reassessed given the multi-peril exposure profile.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right column: Similar Cases + Pipeline -->
+      <div class="col-span-1 space-y-5">
+        <!-- Similar Cases -->
+        <div class="card p-5">
+          <div class="flex items-center justify-between mb-1">
+            <h3 class="text-sm font-semibold text-ink-900">Similar Cases</h3>
+            <span class="text-[10px] text-ink-400 font-mono">2,126 vectors</span>
+          </div>
+          <p class="text-[11px] text-ink-400 mb-4">FAISS nearest-neighbor retrieval</p>
+
+          <div class="space-y-2.5">
+            <!-- Kaggle case 1 -->
+            <div class="border border-surface-200 rounded-lg p-3 hover:border-brand-cyan/40 transition cursor-pointer">
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="text-[11px] font-mono text-ink-400">PLY-2023-00847</span>
+                <span class="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-orange-50 text-risk-high">HIGH</span>
+              </div>
+              <p class="text-sm text-ink-700 mb-2">single vehicle collision, Saab 92x, in SC, severity: major damage</p>
+              <div class="flex items-center justify-between">
+                <span class="text-[11px] text-ink-400">Claim: $71,610</span>
+                <div class="flex items-center gap-1.5">
+                  <div class="w-14 bg-surface-100 rounded-full h-1">
+                    <div class="h-1 rounded-full" style="width: 92%; background: linear-gradient(90deg, #00d4ff, #8b5cf6)"></div>
+                  </div>
+                  <span class="text-[11px] font-semibold brand-gradient-text">92%</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Kaggle case 2 -->
+            <div class="border border-surface-200 rounded-lg p-3 hover:border-brand-cyan/40 transition cursor-pointer">
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="text-[11px] font-mono text-ink-400">PLY-2024-01203</span>
+                <span class="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-orange-50 text-risk-high">HIGH</span>
+              </div>
+              <p class="text-sm text-ink-700 mb-2">multi-vehicle collision, property damage, in NY, severity: major damage</p>
+              <div class="flex items-center justify-between">
+                <span class="text-[11px] text-ink-400">Claim: $63,400</span>
+                <div class="flex items-center gap-1.5">
+                  <div class="w-14 bg-surface-100 rounded-full h-1">
+                    <div class="h-1 rounded-full" style="width: 87%; background: linear-gradient(90deg, #00d4ff, #8b5cf6)"></div>
+                  </div>
+                  <span class="text-[11px] font-semibold brand-gradient-text">87%</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Kaggle case 3 -->
+            <div class="border border-surface-200 rounded-lg p-3 hover:border-brand-cyan/40 transition cursor-pointer">
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="text-[11px] font-mono text-ink-400">PLY-2022-00519</span>
+                <span class="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-amber-50 text-risk-moderate">MODERATE</span>
+              </div>
+              <p class="text-sm text-ink-700 mb-2">vehicle theft, property damage, in OH, severity: minor damage</p>
+              <div class="flex items-center justify-between">
+                <span class="text-[11px] text-ink-400">Claim: $28,900</span>
+                <div class="flex items-center gap-1.5">
+                  <div class="w-14 bg-surface-100 rounded-full h-1">
+                    <div class="h-1 rounded-full" style="width: 79%; background: linear-gradient(90deg, #00d4ff, #8b5cf6)"></div>
+                  </div>
+                  <span class="text-[11px] font-semibold brand-gradient-text">79%</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- EDGAR case 1 -->
+            <div class="border border-purple-100 rounded-lg p-3 bg-purple-50/20 hover:border-brand-purple/30 transition cursor-pointer">
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="text-[11px] font-mono text-ink-400">EDGAR-TRAVELERS-0948</span>
+                <span class="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-purple-50 text-brand-purple">10-K</span>
+              </div>
+              <p class="text-sm text-ink-700 mb-2">Catastrophe reinsurance disclosure: wind, fire, and flood exposure in commercial property</p>
+              <div class="flex items-center justify-between">
+                <span class="text-[11px] text-ink-400">SEC Filing: Travelers</span>
+                <div class="flex items-center gap-1.5">
+                  <div class="w-14 bg-surface-100 rounded-full h-1">
+                    <div class="h-1 rounded-full" style="width: 73%; background: linear-gradient(90deg, #00d4ff, #8b5cf6)"></div>
+                  </div>
+                  <span class="text-[11px] font-semibold brand-gradient-text">73%</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- EDGAR case 2 -->
+            <div class="border border-purple-100 rounded-lg p-3 bg-purple-50/20 hover:border-brand-purple/30 transition cursor-pointer">
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="text-[11px] font-mono text-ink-400">EDGAR-AIG-0142</span>
+                <span class="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-purple-50 text-brand-purple">10-K</span>
+              </div>
+              <p class="text-sm text-ink-700 mb-2">Property risk reserves and catastrophe modeling for multi-peril commercial exposures</p>
+              <div class="flex items-center justify-between">
+                <span class="text-[11px] text-ink-400">SEC Filing: AIG</span>
+                <div class="flex items-center gap-1.5">
+                  <div class="w-14 bg-surface-100 rounded-full h-1">
+                    <div class="h-1 rounded-full" style="width: 68%; background: linear-gradient(90deg, #00d4ff, #8b5cf6)"></div>
+                  </div>
+                  <span class="text-[11px] font-semibold brand-gradient-text">68%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pipeline Trace -->
+        <div class="card p-5">
+          <h3 class="text-sm font-semibold text-ink-900 mb-4">Pipeline Trace</h3>
+          <div class="space-y-3">
+            <div class="pipeline-step flex items-center justify-between text-sm">
+              <div class="flex items-center gap-3">
+                <div class="w-6 h-6 rounded-full bg-emerald-50 flex items-center justify-center">
+                  <span class="status-dot bg-emerald-400"></span>
+                </div>
+                <span class="text-ink-700">Ingestion + NER</span>
+              </div>
+              <span class="text-ink-400 font-mono text-xs">142ms</span>
+            </div>
+            <div class="pipeline-step flex items-center justify-between text-sm">
+              <div class="flex items-center gap-3">
+                <div class="w-6 h-6 rounded-full bg-emerald-50 flex items-center justify-center">
+                  <span class="status-dot bg-emerald-400"></span>
+                </div>
+                <span class="text-ink-700">XGBoost + SHAP</span>
+              </div>
+              <span class="text-ink-400 font-mono text-xs">33ms</span>
+            </div>
+            <div class="pipeline-step flex items-center justify-between text-sm">
+              <div class="flex items-center gap-3">
+                <div class="w-6 h-6 rounded-full bg-emerald-50 flex items-center justify-center">
+                  <span class="status-dot bg-emerald-400"></span>
+                </div>
+                <span class="text-ink-700">RAG retrieval</span>
+              </div>
+              <span class="text-ink-400 font-mono text-xs">28ms</span>
+            </div>
+            <div class="pipeline-step flex items-center justify-between text-sm">
+              <div class="flex items-center gap-3">
+                <div class="w-6 h-6 rounded-full bg-emerald-50 flex items-center justify-center">
+                  <span class="status-dot bg-emerald-400"></span>
+                </div>
+                <span class="text-ink-700">LLM synthesis</span>
+              </div>
+              <span class="text-ink-400 font-mono text-xs">2.4s</span>
+            </div>
+            <div class="border-t border-surface-200 pt-3 mt-1 flex items-center justify-between text-sm">
+              <span class="text-ink-900 font-semibold">Total</span>
+              <span class="text-ink-900 font-mono text-xs font-bold">2.6s</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+function showView(view) {
+  document.getElementById('view-upload').classList.toggle('hidden', view !== 'upload');
+  document.getElementById('view-dashboard').classList.toggle('hidden', view !== 'dashboard');
+
+  // Update sidebar active state
+  const navUpload = document.getElementById('nav-upload');
+  const navDashboard = document.getElementById('nav-dashboard');
+
+  navUpload.classList.toggle('sidebar-active', view === 'upload');
+  navUpload.classList.toggle('text-white/90', view === 'upload');
+  navUpload.classList.toggle('text-white/50', view !== 'upload');
+  navDashboard.classList.toggle('sidebar-active', view === 'dashboard');
+  navDashboard.classList.toggle('text-white/90', view === 'dashboard');
+  navDashboard.classList.toggle('text-white/50', view !== 'dashboard');
+
+  // Update icon color
+  navUpload.querySelector('svg').classList.toggle('text-brand-cyan', view === 'upload');
+  navDashboard.querySelector('svg').classList.toggle('text-brand-cyan', view === 'dashboard');
+
+  // Update header
+  const title = document.getElementById('page-title');
+  const subtitle = document.getElementById('page-subtitle');
+  if (view === 'upload') {
+    title.textContent = 'Submit Document';
+    subtitle.textContent = 'Upload a policy, claim, or underwriting submission';
+  } else {
+    title.textContent = 'Risk Analysis';
+    subtitle.textContent = 'commercial_property_policy.pdf \u2014 #a3f8-29d1';
+  }
+}
+</script>
+
+</body>
+</html>

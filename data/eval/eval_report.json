@@ -1,0 +1,956 @@
+{
+  "timestamp": "2026-03-24T01:29:35.306585+00:00",
+  "git_hash": "bb1f35c",
+  "backend_mode": "direct",
+  "total_cases": 20,
+  "metrics": {
+    "tier_exact_match": 11,
+    "tier_adjacent_match": 20,
+    "consistency_passed": 20,
+    "shap_grounded": 20,
+    "mean_rag_similarity": 0.8795,
+    "mean_processing_time_ms": 22.1
+  },
+  "cases": [
+    {
+      "case_index": 635,
+      "incident_type": "Parked Car",
+      "incident_severity": "Trivial Damage",
+      "fraud_reported": "Y",
+      "actual_claim_amount": 2860.0,
+      "expected_tier": "LOW",
+      "predicted_tier": "LOW",
+      "risk_probability": 0.1285,
+      "predicted_claim_amount": 13983.24,
+      "risk_factors": [
+        {
+          "name": "Total entities in document",
+          "shap_value": -1.380371,
+          "direction": "decreases_risk"
+        },
+        {
+          "name": "Vehicles involved in incident",
+          "shap_value": -0.478926,
+          "direction": "decreases_risk"
+        },
+        {
+          "name": "Vehicle age (years)",
+          "shap_value": -0.459162,
+          "direction": "decreases_risk"
+        },
+        {
+          "name": "Bodily injuries reported",
+          "shap_value": 0.317035,
+          "direction": "increases_risk"
+        },
+        {
+          "name": "Highest monetary value",
+          "shap_value": -0.209407,
+          "direction": "decreases_risk"
+        }
+      ],
+      "rag_result_count": 5,
+      "rag_top_similarity": 0.8688,
+      "rag_type_match": true,
+      "tier_match": true,
+      "tier_adjacent": true,
+      "claim_reasonable": true,
+      "consistency_passed": true,
+      "shap_grounded": true,
+      "processing_time_ms": 86.1
+    },
+    {
+      "case_index": 174,
+      "incident_type": "Vehicle Theft",
+      "incident_severity": "Trivial Damage",
+      "fraud_reported": "N",
+      "actual_claim_amount": 6100.0,
+      "expected_tier": "LOW",
+      "predicted_tier": "LOW",
+      "risk_probability": 0.1904,
+      "predicted_claim_amount": 13042.6,
+      "risk_factors": [
+        {
+          "name": "Vehicle age (years)",
+          "shap_value": -0.65574,
+          "direction": "decreases_risk"
+        },
+        {
+          "name": "Vehicles involved in incident",
+          "shap_value": -0.400399,
+          "direction": "decreases_risk"
+        },
+        {
+          "name": "Total entities in document",
+          "shap_value": -0.329183,
+          "direction": "decreases_risk"
+        },
+        {
+          "name": "Highest monetary value",
+          "shap_value": -0.233726,
+          "direction": "decreases_risk"
+        },
+        {
+          "name": "Bodily injuries reported",
+          "shap_value": 0.183782,
+          "direction": "increases_risk"
+        }
+      ],
+      "rag_result_count": 5,
+      "rag_top_similarity": 0.8689,
+      "rag_type_match": true,
+      "tier_match": true,
+      "tier_adjacent": true,
+      "claim_reasonable": true,
+      "consistency_passed": true,
+      "shap_grounded": true,
+      "processing_time_ms": 21.1
+    },
+    {
+      "case_index": 473,
+      "incident_type": "Vehicle Theft",
+      "incident_severity": "Trivial Damage",
+      "fraud_reported": "N",
+      "actual_claim_amount": 7080.0,
+      "expected_tier": "LOW",
+      "predicted_tier": "LOW",
+      "risk_probability": 0.1278,
+      "predicted_claim_amount": 10280.87,
+      "risk_factors": [
+        {
+          "name": "Total entities in document",
+          "shap_value": -1.147635,
+          "direction": "decreases_risk"
+        },
+        {
+          "name": "Highest monetary value",
+          "shap_value": -0.776153,
+          "direction": "decreases_risk"
+        },
+        {
+          "name": "Bodily injuries reported",
+          "shap_value": -0.231483,
+          "direction": "decreases_risk"
+        },
+        {
+          "name": "Police contacted",
+          "shap_value": 0.227058,
+          "direction": "increases_risk"
+        },
+        {
+          "name": "Vehicles involved in incident",
+          "shap_value": -0.144773,
+          "direction": "decreases_risk"
+        }
+      ],
+      "rag_result_count": 5,
+      "rag_top_similarity": 0.8783,
+      "rag_type_match": true,
+      "tier_match": true,
+      "tier_adjacent": true,
+      "claim_reasonable": true,
+      "consistency_passed": true,
+      "shap_grounded": true,
+      "processing_time_ms": 24.2
+    },
+    {
+      "case_index": 51,
+      "incident_type": "Vehicle Theft",
+      "incident_severity": "Trivial Damage",
+      "fraud_reported": "N",
+      "actual_claim_amount": 7260.0,
+      "expected_tier": "LOW",
+      "predicted_tier": "LOW",
+      "risk_probability": 0.1218,
+      "predicted_claim_amount": 10463.8,
+      "risk_factors": [
+        {
+          "name": "Total entities in document",
+          "shap_value": -0.837786,
+          "direction": "decreases_risk"
+        },
+        {
+          "name": "Vehicles involved in incident",
+          "shap_value": -0.434776,
+          "direction": "decreases_risk"
+        },
+        {
+          "name": "Highest monetary value",
+          "shap_value": -0.416525,
+          "direction": "decreases_risk"
+        },
+        {
+          "name": "Police contacted",
+          "shap_value": 0.346524,
+          "direction": "increases_risk"
+        },
+        {
+          "name": "Bodily injuries reported",
+          "shap_value": -0.307736,
+          "direction": "decreases_risk"
+        }
+      ],
+      "rag_result_count": 5,
+      "rag_top_similarity": 0.8803,
+      "rag_type_match": true,
+      "tier_match": true,
+      "tier_adjacent": true,
+      "claim_reasonable": true,
+      "consistency_passed": true,
+      "shap_grounded": true,
+      "processing_time_ms": 19.0
+    },
+    {
+      "case_index": 775,
+      "incident_type": "Parked Car",
+      "incident_severity": "Trivial Damage",
+      "fraud_reported": "N",
+      "actual_claim_amount": 100.0,
+      "expected_tier": "LOW",
+      "predicted_tier": "LOW",
+      "risk_probability": 0.1254,
+      "predicted_claim_amount": 5173.96,
+      "risk_factors": [
+        {
+          "name": "Police contacted",
+          "shap_value": -0.943467,
+          "direction": "decreases_risk"
+        },
+        {
+          "name": "Total entities in document",
+          "shap_value": 0.700133,
+          "direction": "increases_risk"
+        },
+        {
+          "name": "Highest monetary value",
+          "shap_value": -0.526525,
+          "direction": "decreases_risk"
+        },
+        {
+          "name": "Bodily injuries reported",
+          "shap_value": -0.364228,
+          "direction": "decreases_risk"
+        },
+        {
+          "name": "Vehicles involved in incident",
+          "shap_value": -0.350664,
+          "direction": "decreases_risk"
+        }
+      ],
+      "rag_result_count": 5,
+      "rag_top_similarity": 0.8351,
+      "rag_type_match": true,
+      "tier_match": true,
+      "tier_adjacent": true,
+      "claim_reasonable": false,
+      "consistency_passed": true,
+      "shap_grounded": true,
+      "processing_time_ms": 20.9
+    },
+    {
+      "case_index": 538,
+      "incident_type": "Parked Car",
+      "incident_severity": "Minor Damage",
+      "fraud_reported": "Y",
+      "actual_claim_amount": 4700.0,
+      "expected_tier": "MODERATE",
+      "predicted_tier": "LOW",
+      "risk_probability": 0.2352,
+      "predicted_claim_amount": 13618.48,
+      "risk_factors": [
+        {
+          "name": "Police contacted",
+          "shap_value": 0.59345,
+          "direction": "increases_risk"
+        },
+        {
+          "name": "Highest monetary value",
+          "shap_value": -0.535446,
+          "direction": "decreases_risk"
+        },
+        {
+          "name": "Bodily injuries reported",
+          "shap_value": -0.521373,
+          "direction": "decreases_risk"
+        },
+        {
+          "name": "Vehicles involved in incident",
+          "shap_value": -0.372051,
+          "direction": "decreases_risk"
+        },
+        {
+          "name": "Witnesses present",
+          "shap_value": -0.345294,
+          "direction": "decreases_risk"
+        }
+      ],
+      "rag_result_count": 5,
+      "rag_top_similarity": 0.8861,
+      "rag_type_match": true,
+      "tier_match": false,
+      "tier_adjacent": true,
+      "claim_reasonable": true,
+      "consistency_passed": true,
+      "shap_grounded": true,
+      "processing_time_ms": 22.4
+    },
+    {
+      "case_index": 114,
+      "incident_type": "Vehicle Theft",
+      "incident_severity": "Minor Damage",
+      "fraud_reported": "N",
+      "actual_claim_amount": 7080.0,
+      "expected_tier": "MODERATE",
+      "predicted_tier": "HIGH",
+      "risk_probability": 0.71,
+      "predicted_claim_amount": 40257.13,
+      "risk_factors": [
+        {
+          "name": "Highest monetary value",
+          "shap_value": 1.051861,
+          "direction": "increases_risk"
+        },
+        {
+          "name": "Police contacted",
+          "shap_value": 0.466899,
+          "direction": "increases_risk"
+        },
+        {
+          "name": "Vehicles involved in incident",
+          "shap_value": -0.394028,
+          "direction": "decreases_risk"
+        },
+        {
+          "name": "Bodily injuries reported",
+          "shap_value": -0.348682,
+          "direction": "decreases_risk"
+        },
+        {
+          "name": "Total entities in document",
+          "shap_value": -0.261395,
+          "direction": "decreases_risk"
+        }
+      ],
+      "rag_result_count": 5,
+      "rag_top_similarity": 0.8913,
+      "rag_type_match": true,
+      "tier_match": false,
+      "tier_adjacent": true,
+      "claim_reasonable": true,
+      "consistency_passed": true,
+      "shap_grounded": true,
+      "processing_time_ms": 28.2
+    },
+    {
+      "case_index": 910,
+      "incident_type": "Single Vehicle Collision",
+      "incident_severity": "Minor Damage",
+      "fraud_reported": "N",
+      "actual_claim_amount": 33480.0,
+      "expected_tier": "MODERATE",
+      "predicted_tier": "LOW",
+      "risk_probability": 0.0492,
+      "predicted_claim_amount": 32192.27,
+      "risk_factors": [
+        {
+          "name": "Highest monetary value",
+          "shap_value": -1.422168,
+          "direction": "decreases_risk"
+        },
+        {
+          "name": "Police contacted",
+          "shap_value": -1.069068,
+          "direction": "decreases_risk"
+        },
+        {
+          "name": "Bodily injuries reported",
+          "shap_value": -0.361976,
+          "direction": "decreases_risk"
+        },
+        {
+          "name": "Witnesses present",
+          "shap_value": 0.334228,
+          "direction": "increases_risk"
+        },
+        {
+          "name": "Vehicles involved in incident",
+          "shap_value": -0.294453,
+          "direction": "decreases_risk"
+        }
+      ],
+      "rag_result_count": 5,
+      "rag_top_similarity": 0.8727,
+      "rag_type_match": true,
+      "tier_match": false,
+      "tier_adjacent": true,
+      "claim_reasonable": true,
+      "consistency_passed": true,
+      "shap_grounded": true,
+      "processing_time_ms": 9.8
+    },
+    {
+      "case_index": 282,
+      "incident_type": "Vehicle Theft",
+      "incident_severity": "Minor Damage",
+      "fraud_reported": "N",
+      "actual_claim_amount": 6820.0,
+      "expected_tier": "MODERATE",
+      "predicted_tier": "LOW",
+      "risk_probability": 0.1439,
+      "predicted_claim_amount": 8598.87,
+      "risk_factors": [
+        {
+          "name": "Police contacted",
+          "shap_value": -0.788145,
+          "direction": "decreases_risk"
+        },
+        {
+          "name": "Highest monetary value",
+          "shap_value": -0.639671,
+          "direction": "decreases_risk"
+        },
+        {
+          "name": "Vehicles involved in incident",
+          "shap_value": -0.315186,
+          "direction": "decreases_risk"
+        },
+        {
+          "name": "Bodily injuries reported",
+          "shap_value": 0.230664,
+          "direction": "increases_risk"
+        },
+        {
+          "name": "Vehicle age (years)",
+          "shap_value": -0.214317,
+          "direction": "decreases_risk"
+        }
+      ],
+      "rag_result_count": 5,
+      "rag_top_similarity": 0.899,
+      "rag_type_match": true,
+      "tier_match": false,
+      "tier_adjacent": true,
+      "claim_reasonable": true,
+      "consistency_passed": true,
+      "shap_grounded": true,
+      "processing_time_ms": 9.1
+    },
+    {
+      "case_index": 760,
+      "incident_type": "Multi-vehicle Collision",
+      "incident_severity": "Minor Damage",
+      "fraud_reported": "N",
+      "actual_claim_amount": 52290.0,
+      "expected_tier": "MODERATE",
+      "predicted_tier": "MODERATE",
+      "risk_probability": 0.3372,
+      "predicted_claim_amount": 53400.7,
+      "risk_factors": [
+        {
+          "name": "Vehicle age (years)",
+          "shap_value": -0.930663,
+          "direction": "decreases_risk"
+        },
+        {
+          "name": "Average monetary value",
+          "shap_value": -0.751604,
+          "direction": "decreases_risk"
+        },
+        {
+          "name": "Total entities in document",
+          "shap_value": 0.665303,
+          "direction": "increases_risk"
+        },
+        {
+          "name": "Highest monetary value",
+          "shap_value": -0.459637,
+          "direction": "decreases_risk"
+        },
+        {
+          "name": "Vehicles involved in incident",
+          "shap_value": 0.4386,
+          "direction": "increases_risk"
+        }
+      ],
+      "rag_result_count": 5,
+      "rag_top_similarity": 0.8911,
+      "rag_type_match": true,
+      "tier_match": true,
+      "tier_adjacent": true,
+      "claim_reasonable": true,
+      "consistency_passed": true,
+      "shap_grounded": true,
+      "processing_time_ms": 11.1
+    },
+    {
+      "case_index": 701,
+      "incident_type": "Multi-vehicle Collision",
+      "incident_severity": "Major Damage",
+      "fraud_reported": "Y",
+      "actual_claim_amount": 35300.0,
+      "expected_tier": "HIGH",
+      "predicted_tier": "CRITICAL",
+      "risk_probability": 0.8029,
+      "predicted_claim_amount": 38632.21,
+      "risk_factors": [
+        {
+          "name": "Highest monetary value",
+          "shap_value": -0.499052,
+          "direction": "decreases_risk"
+        },
+        {
+          "name": "Average monetary value",
+          "shap_value": 0.428334,
+          "direction": "increases_risk"
+        },
+        {
+          "name": "Vehicle age (years)",
+          "shap_value": 0.400902,
+          "direction": "increases_risk"
+        },
+        {
+          "name": "Total entities in document",
+          "shap_value": 0.341738,
+          "direction": "increases_risk"
+        },
+        {
+          "name": "Vehicles involved in incident",
+          "shap_value": 0.200045,
+          "direction": "increases_risk"
+        }
+      ],
+      "rag_result_count": 5,
+      "rag_top_similarity": 0.8564,
+      "rag_type_match": true,
+      "tier_match": false,
+      "tier_adjacent": true,
+      "claim_reasonable": true,
+      "consistency_passed": true,
+      "shap_grounded": true,
+      "processing_time_ms": 25.4
+    },
+    {
+      "case_index": 588,
+      "incident_type": "Single Vehicle Collision",
+      "incident_severity": "Major Damage",
+      "fraud_reported": "N",
+      "actual_claim_amount": 70900.0,
+      "expected_tier": "HIGH",
+      "predicted_tier": "CRITICAL",
+      "risk_probability": 0.8392,
+      "predicted_claim_amount": 73469.6,
+      "risk_factors": [
+        {
+          "name": "Highest monetary value",
+          "shap_value": 0.656221,
+          "direction": "increases_risk"
+        },
+        {
+          "name": "Vehicle age (years)",
+          "shap_value": 0.274037,
+          "direction": "increases_risk"
+        },
+        {
+          "name": "Police contacted",
+          "shap_value": 0.245019,
+          "direction": "increases_risk"
+        },
+        {
+          "name": "Total entities in document",
+          "shap_value": -0.226462,
+          "direction": "decreases_risk"
+        },
+        {
+          "name": "Bodily injuries reported",
+          "shap_value": 0.203983,
+          "direction": "increases_risk"
+        }
+      ],
+      "rag_result_count": 5,
+      "rag_top_similarity": 0.856,
+      "rag_type_match": true,
+      "tier_match": false,
+      "tier_adjacent": true,
+      "claim_reasonable": true,
+      "consistency_passed": true,
+      "shap_grounded": true,
+      "processing_time_ms": 19.7
+    },
+    {
+      "case_index": 572,
+      "incident_type": "Multi-vehicle Collision",
+      "incident_severity": "Major Damage",
+      "fraud_reported": "N",
+      "actual_claim_amount": 79090.0,
+      "expected_tier": "HIGH",
+      "predicted_tier": "CRITICAL",
+      "risk_probability": 0.9667,
+      "predicted_claim_amount": 77234.98,
+      "risk_factors": [
+        {
+          "name": "Vehicles involved in incident",
+          "shap_value": 0.859387,
+          "direction": "increases_risk"
+        },
+        {
+          "name": "Vehicle age (years)",
+          "shap_value": 0.690086,
+          "direction": "increases_risk"
+        },
+        {
+          "name": "Total entities in document",
+          "shap_value": 0.536455,
+          "direction": "increases_risk"
+        },
+        {
+          "name": "Witnesses present",
+          "shap_value": 0.444558,
+          "direction": "increases_risk"
+        },
+        {
+          "name": "Highest monetary value",
+          "shap_value": 0.357236,
+          "direction": "increases_risk"
+        }
+      ],
+      "rag_result_count": 5,
+      "rag_top_similarity": 0.8665,
+      "rag_type_match": true,
+      "tier_match": false,
+      "tier_adjacent": true,
+      "claim_reasonable": true,
+      "consistency_passed": true,
+      "shap_grounded": true,
+      "processing_time_ms": 28.5
+    },
+    {
+      "case_index": 655,
+      "incident_type": "Single Vehicle Collision",
+      "incident_severity": "Major Damage",
+      "fraud_reported": "N",
+      "actual_claim_amount": 95000.0,
+      "expected_tier": "HIGH",
+      "predicted_tier": "HIGH",
+      "risk_probability": 0.7274,
+      "predicted_claim_amount": 82991.45,
+      "risk_factors": [
+        {
+          "name": "Highest monetary value",
+          "shap_value": 0.921386,
+          "direction": "increases_risk"
+        },
+        {
+          "name": "Vehicles involved in incident",
+          "shap_value": -0.370196,
+          "direction": "decreases_risk"
+        },
+        {
+          "name": "Police contacted",
+          "shap_value": 0.365304,
+          "direction": "increases_risk"
+        },
+        {
+          "name": "Total entities in document",
+          "shap_value": -0.33867,
+          "direction": "decreases_risk"
+        },
+        {
+          "name": "Average monetary value",
+          "shap_value": 0.195631,
+          "direction": "increases_risk"
+        }
+      ],
+      "rag_result_count": 5,
+      "rag_top_similarity": 0.8901,
+      "rag_type_match": true,
+      "tier_match": true,
+      "tier_adjacent": true,
+      "claim_reasonable": true,
+      "consistency_passed": true,
+      "shap_grounded": true,
+      "processing_time_ms": 9.3
+    },
+    {
+      "case_index": 370,
+      "incident_type": "Multi-vehicle Collision",
+      "incident_severity": "Major Damage",
+      "fraud_reported": "N",
+      "actual_claim_amount": 52560.0,
+      "expected_tier": "HIGH",
+      "predicted_tier": "MODERATE",
+      "risk_probability": 0.4491,
+      "predicted_claim_amount": 69272.61,
+      "risk_factors": [
+        {
+          "name": "Highest monetary value",
+          "shap_value": -0.7848,
+          "direction": "decreases_risk"
+        },
+        {
+          "name": "Bodily injuries reported",
+          "shap_value": -0.343722,
+          "direction": "decreases_risk"
+        },
+        {
+          "name": "Police contacted",
+          "shap_value": 0.172137,
+          "direction": "increases_risk"
+        },
+        {
+          "name": "Vehicles involved in incident",
+          "shap_value": 0.164286,
+          "direction": "increases_risk"
+        },
+        {
+          "name": "Average monetary value",
+          "shap_value": 0.120347,
+          "direction": "increases_risk"
+        }
+      ],
+      "rag_result_count": 5,
+      "rag_top_similarity": 0.8851,
+      "rag_type_match": true,
+      "tier_match": false,
+      "tier_adjacent": true,
+      "claim_reasonable": true,
+      "consistency_passed": true,
+      "shap_grounded": true,
+      "processing_time_ms": 31.3
+    },
+    {
+      "case_index": 14,
+      "incident_type": "Single Vehicle Collision",
+      "incident_severity": "Total Loss",
+      "fraud_reported": "Y",
+      "actual_claim_amount": 46200.0,
+      "expected_tier": "CRITICAL",
+      "predicted_tier": "CRITICAL",
+      "risk_probability": 0.8234,
+      "predicted_claim_amount": 40538.76,
+      "risk_factors": [
+        {
+          "name": "Average monetary value",
+          "shap_value": 0.871151,
+          "direction": "increases_risk"
+        },
+        {
+          "name": "Police contacted",
+          "shap_value": -0.643182,
+          "direction": "decreases_risk"
+        },
+        {
+          "name": "Highest monetary value",
+          "shap_value": 0.482385,
+          "direction": "increases_risk"
+        },
+        {
+          "name": "Bodily injuries reported",
+          "shap_value": 0.439571,
+          "direction": "increases_risk"
+        },
+        {
+          "name": "Vehicles involved in incident",
+          "shap_value": -0.397773,
+          "direction": "decreases_risk"
+        }
+      ],
+      "rag_result_count": 5,
+      "rag_top_similarity": 0.8685,
+      "rag_type_match": true,
+      "tier_match": true,
+      "tier_adjacent": true,
+      "claim_reasonable": true,
+      "consistency_passed": true,
+      "shap_grounded": true,
+      "processing_time_ms": 9.9
+    },
+    {
+      "case_index": 391,
+      "incident_type": "Multi-vehicle Collision",
+      "incident_severity": "Total Loss",
+      "fraud_reported": "N",
+      "actual_claim_amount": 51480.0,
+      "expected_tier": "CRITICAL",
+      "predicted_tier": "CRITICAL",
+      "risk_probability": 0.8603,
+      "predicted_claim_amount": 52191.74,
+      "risk_factors": [
+        {
+          "name": "Average monetary value",
+          "shap_value": -0.767033,
+          "direction": "decreases_risk"
+        },
+        {
+          "name": "Highest monetary value",
+          "shap_value": 0.659286,
+          "direction": "increases_risk"
+        },
+        {
+          "name": "Vehicle age (years)",
+          "shap_value": 0.55398,
+          "direction": "increases_risk"
+        },
+        {
+          "name": "Total entities in document",
+          "shap_value": 0.506786,
+          "direction": "increases_risk"
+        },
+        {
+          "name": "Vehicles involved in incident",
+          "shap_value": 0.431353,
+          "direction": "increases_risk"
+        }
+      ],
+      "rag_result_count": 5,
+      "rag_top_similarity": 0.8993,
+      "rag_type_match": true,
+      "tier_match": true,
+      "tier_adjacent": true,
+      "claim_reasonable": true,
+      "consistency_passed": true,
+      "shap_grounded": true,
+      "processing_time_ms": 11.2
+    },
+    {
+      "case_index": 569,
+      "incident_type": "Single Vehicle Collision",
+      "incident_severity": "Total Loss",
+      "fraud_reported": "N",
+      "actual_claim_amount": 69700.0,
+      "expected_tier": "CRITICAL",
+      "predicted_tier": "HIGH",
+      "risk_probability": 0.5894,
+      "predicted_claim_amount": 68868.23,
+      "risk_factors": [
+        {
+          "name": "Vehicle age (years)",
+          "shap_value": 0.555225,
+          "direction": "increases_risk"
+        },
+        {
+          "name": "Bodily injuries reported",
+          "shap_value": -0.275015,
+          "direction": "decreases_risk"
+        },
+        {
+          "name": "Total entities in document",
+          "shap_value": -0.237979,
+          "direction": "decreases_risk"
+        },
+        {
+          "name": "Police contacted",
+          "shap_value": 0.200572,
+          "direction": "increases_risk"
+        },
+        {
+          "name": "Vehicles involved in incident",
+          "shap_value": -0.111461,
+          "direction": "decreases_risk"
+        }
+      ],
+      "rag_result_count": 5,
+      "rag_top_similarity": 0.9216,
+      "rag_type_match": true,
+      "tier_match": false,
+      "tier_adjacent": true,
+      "claim_reasonable": true,
+      "consistency_passed": true,
+      "shap_grounded": true,
+      "processing_time_ms": 21.9
+    },
+    {
+      "case_index": 660,
+      "incident_type": "Multi-vehicle Collision",
+      "incident_severity": "Total Loss",
+      "fraud_reported": "N",
+      "actual_claim_amount": 62800.0,
+      "expected_tier": "CRITICAL",
+      "predicted_tier": "CRITICAL",
+      "risk_probability": 0.8387,
+      "predicted_claim_amount": 63870.73,
+      "risk_factors": [
+        {
+          "name": "Police contacted",
+          "shap_value": -0.584543,
+          "direction": "decreases_risk"
+        },
+        {
+          "name": "Average monetary value",
+          "shap_value": 0.55443,
+          "direction": "increases_risk"
+        },
+        {
+          "name": "Vehicles involved in incident",
+          "shap_value": 0.537034,
+          "direction": "increases_risk"
+        },
+        {
+          "name": "Highest monetary value",
+          "shap_value": 0.413097,
+          "direction": "increases_risk"
+        },
+        {
+          "name": "Bodily injuries reported",
+          "shap_value": 0.286656,
+          "direction": "increases_risk"
+        }
+      ],
+      "rag_result_count": 5,
+      "rag_top_similarity": 0.8874,
+      "rag_type_match": true,
+      "tier_match": true,
+      "tier_adjacent": true,
+      "claim_reasonable": true,
+      "consistency_passed": true,
+      "shap_grounded": true,
+      "processing_time_ms": 22.6
+    },
+    {
+      "case_index": 431,
+      "incident_type": "Multi-vehicle Collision",
+      "incident_severity": "Total Loss",
+      "fraud_reported": "N",
+      "actual_claim_amount": 54340.0,
+      "expected_tier": "CRITICAL",
+      "predicted_tier": "CRITICAL",
+      "risk_probability": 0.8791,
+      "predicted_claim_amount": 57238.75,
+      "risk_factors": [
+        {
+          "name": "Vehicle age (years)",
+          "shap_value": 0.567523,
+          "direction": "increases_risk"
+        },
+        {
+          "name": "Vehicles involved in incident",
+          "shap_value": 0.433491,
+          "direction": "increases_risk"
+        },
+        {
+          "name": "Highest monetary value",
+          "shap_value": 0.380693,
+          "direction": "increases_risk"
+        },
+        {
+          "name": "Bodily injuries reported",
+          "shap_value": 0.3228,
+          "direction": "increases_risk"
+        },
+        {
+          "name": "Average monetary value",
+          "shap_value": -0.291801,
+          "direction": "decreases_risk"
+        }
+      ],
+      "rag_result_count": 5,
+      "rag_top_similarity": 0.8875,
+      "rag_type_match": true,
+      "tier_match": true,
+      "tier_adjacent": true,
+      "claim_reasonable": true,
+      "consistency_passed": true,
+      "shap_grounded": true,
+      "processing_time_ms": 10.9
+    }
+  ]
+}

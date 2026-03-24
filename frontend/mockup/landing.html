@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARIA - Automated Risk Intelligence Assistant</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        dark: { 950: '#050810', 900: '#070a14', 800: '#0b1120', 700: '#111827', 600: '#1e293b' },
+        surface: { 50: '#f8fafc', 100: '#f1f5f9', 200: '#e2e8f0', 300: '#cbd5e1' },
+        ink: { 900: '#0f172a', 800: '#1e293b', 700: '#334155', 500: '#64748b', 400: '#94a3b8', 300: '#cbd5e1' },
+        brand: { cyan: '#00d4ff', blue: '#1e3a8a', purple: '#8b5cf6' },
+      }
+    }
+  }
+}
+</script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap');
+  body { font-family: 'Poppins', sans-serif; }
+  .font-mono { font-family: 'Fira Code', monospace; }
+
+  .hero-gradient {
+    background: radial-gradient(ellipse at 30% 0%, rgba(0, 212, 255, 0.12) 0%, transparent 60%),
+                radial-gradient(ellipse at 70% 0%, rgba(139, 92, 246, 0.10) 0%, transparent 60%),
+                radial-gradient(ellipse at 50% 100%, rgba(30, 58, 138, 0.08) 0%, transparent 50%);
+  }
+  .brand-gradient { background: linear-gradient(135deg, #00d4ff, #1e3a8a, #8b5cf6); }
+  .brand-gradient-text { background: linear-gradient(135deg, #00d4ff, #6366f1, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .brand-glow { box-shadow: 0 0 24px rgba(0, 212, 255, 0.2), 0 0 48px rgba(139, 92, 246, 0.1); }
+  .card-glow:hover { box-shadow: 0 0 30px rgba(0, 212, 255, 0.08), 0 8px 24px rgba(0, 0, 0, 0.04); }
+
+  .fade-up { opacity: 0; transform: translateY(30px); animation: fadeUp 0.7s ease-out forwards; }
+  .fade-up-delay-1 { animation-delay: 0.15s; }
+  .fade-up-delay-2 { animation-delay: 0.3s; }
+  .fade-up-delay-3 { animation-delay: 0.45s; }
+  .fade-up-delay-4 { animation-delay: 0.6s; }
+  @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+
+  .pipeline-line { position: relative; }
+  .pipeline-line::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: -32px;
+    width: 32px;
+    height: 2px;
+    background: linear-gradient(90deg, #00d4ff, #8b5cf6);
+    opacity: 0.3;
+  }
+  .pipeline-line:last-child::after { display: none; }
+
+  .float-animation { animation: float 6s ease-in-out infinite; }
+  @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+  .gradient-border {
+    position: relative;
+    background: #0b1120;
+    border-radius: 16px;
+  }
+  .gradient-border::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: 17px;
+    background: linear-gradient(135deg, rgba(0, 212, 255, 0.25), rgba(139, 92, 246, 0.25));
+    z-index: -1;
+  }
+</style>
+</head>
+<body class="bg-dark-900 text-white antialiased overflow-x-hidden">
+
+<!-- Nav -->
+<nav class="fixed top-0 w-full z-50 bg-dark-900/80 backdrop-blur-xl border-b border-white/5">
+  <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <img src="../assets/aria-logo.png" alt="ARIA" class="h-7 w-auto">
+    </div>
+    <div class="flex items-center gap-8">
+      <a href="#features" class="text-sm text-white/50 hover:text-white/90 transition">Features</a>
+      <a href="#pipeline" class="text-sm text-white/50 hover:text-white/90 transition">Pipeline</a>
+      <a href="#tech" class="text-sm text-white/50 hover:text-white/90 transition">Tech Stack</a>
+      <a href="index.html" class="px-4 py-2 text-sm font-medium brand-gradient rounded-lg hover:opacity-90 transition brand-glow cursor-pointer">Launch App</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero Section -->
+<section class="hero-gradient min-h-screen flex items-center pt-20">
+  <div class="max-w-6xl mx-auto px-6 py-20">
+    <div class="max-w-3xl">
+      <div class="fade-up">
+        <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs text-white/60 mb-6">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+          4-Stage GenAI Pipeline
+        </span>
+      </div>
+
+      <h1 class="text-5xl font-bold leading-tight mb-6 fade-up fade-up-delay-1">
+        Automated Risk<br>
+        <span class="brand-gradient-text">Intelligence Assistant</span>
+      </h1>
+
+      <p class="text-lg text-white/50 leading-relaxed max-w-xl mb-10 fade-up fade-up-delay-2">
+        ARIA transforms insurance underwriting with AI. Upload a document, extract risk entities, predict claim probability, and generate explainable underwriter narratives — in seconds, not hours.
+      </p>
+
+      <div class="flex items-center gap-4 fade-up fade-up-delay-3">
+        <a href="index.html" class="px-6 py-3 text-sm font-semibold brand-gradient rounded-xl hover:opacity-90 transition brand-glow cursor-pointer">
+          Try the Demo
+        </a>
+        <a href="#pipeline" class="px-6 py-3 text-sm font-medium text-white/60 border border-white/10 rounded-xl hover:border-white/25 hover:text-white/80 transition cursor-pointer">
+          See How It Works
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features Section -->
+<section id="features" class="py-24 bg-dark-950">
+  <div class="max-w-6xl mx-auto px-6">
+    <div class="text-center mb-16">
+      <h2 class="text-3xl font-bold mb-4 fade-up">What ARIA Does</h2>
+      <p class="text-white/40 max-w-lg mx-auto fade-up fade-up-delay-1">An end-to-end system that replaces manual underwriting review with a GenAI-powered pipeline.</p>
+    </div>
+
+    <div class="grid grid-cols-3 gap-6">
+      <!-- Feature 1 -->
+      <div class="gradient-border p-6 card-glow transition fade-up fade-up-delay-1">
+        <div class="w-10 h-10 rounded-xl bg-cyan-500/10 flex items-center justify-center mb-4">
+          <svg class="w-5 h-5 text-brand-cyan" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        </div>
+        <h3 class="text-base font-semibold text-white mb-2">Document Intelligence</h3>
+        <p class="text-sm text-white/40 leading-relaxed">Upload PDFs of policies, claims, or underwriting submissions. spaCy NER extracts risk entities — perils, coverage types, monetary values, and claim history.</p>
+      </div>
+
+      <!-- Feature 2 -->
+      <div class="gradient-border p-6 card-glow transition fade-up fade-up-delay-2">
+        <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center mb-4">
+          <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+        </div>
+        <h3 class="text-base font-semibold text-white mb-2">Explainable Predictions</h3>
+        <p class="text-sm text-white/40 leading-relaxed">XGBoost predicts claim probability and severity. SHAP values explain exactly which factors drive the risk score — not a black box.</p>
+      </div>
+
+      <!-- Feature 3 -->
+      <div class="gradient-border p-6 card-glow transition fade-up fade-up-delay-3">
+        <div class="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center mb-4">
+          <svg class="w-5 h-5 text-brand-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+        </div>
+        <h3 class="text-base font-semibold text-white mb-2">AI Narratives</h3>
+        <p class="text-sm text-white/40 leading-relaxed">Claude synthesizes predictions, SHAP factors, and similar historical cases into a structured underwriter narrative — ready for review.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Pipeline Section -->
+<section id="pipeline" class="py-24 bg-dark-900">
+  <div class="max-w-6xl mx-auto px-6">
+    <div class="text-center mb-16">
+      <h2 class="text-3xl font-bold mb-4">The 4-Stage Pipeline</h2>
+      <p class="text-white/40 max-w-lg mx-auto">Each stage runs as an independent microservice, orchestrated by Docker Compose.</p>
+    </div>
+
+    <div class="grid grid-cols-4 gap-8">
+      <!-- Stage 1 -->
+      <div class="pipeline-line text-center">
+        <div class="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-cyan-500/20 to-cyan-500/5 border border-cyan-500/20 flex items-center justify-center mb-4">
+          <span class="text-brand-cyan font-bold text-lg">1</span>
+        </div>
+        <h3 class="text-sm font-semibold mb-2">Ingestion + NER</h3>
+        <p class="text-xs text-white/40 leading-relaxed">PySpark ingests documents. spaCy NER with custom insurance patterns extracts risk entities.</p>
+        <div class="mt-3 flex flex-wrap justify-center gap-1">
+          <span class="px-2 py-0.5 text-[10px] bg-white/5 rounded text-white/30">PySpark</span>
+          <span class="px-2 py-0.5 text-[10px] bg-white/5 rounded text-white/30">spaCy</span>
+          <span class="px-2 py-0.5 text-[10px] bg-white/5 rounded text-white/30">FastAPI</span>
+        </div>
+      </div>
+
+      <!-- Stage 2 -->
+      <div class="pipeline-line text-center">
+        <div class="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-500/5 border border-blue-500/20 flex items-center justify-center mb-4">
+          <span class="text-blue-400 font-bold text-lg">2</span>
+        </div>
+        <h3 class="text-sm font-semibold mb-2">Prediction</h3>
+        <p class="text-xs text-white/40 leading-relaxed">XGBoost scores claim probability and severity. SHAP explains feature contributions.</p>
+        <div class="mt-3 flex flex-wrap justify-center gap-1">
+          <span class="px-2 py-0.5 text-[10px] bg-white/5 rounded text-white/30">XGBoost</span>
+          <span class="px-2 py-0.5 text-[10px] bg-white/5 rounded text-white/30">SHAP</span>
+        </div>
+      </div>
+
+      <!-- Stage 3 -->
+      <div class="pipeline-line text-center">
+        <div class="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-indigo-500/20 to-indigo-500/5 border border-indigo-500/20 flex items-center justify-center mb-4">
+          <span class="text-indigo-400 font-bold text-lg">3</span>
+        </div>
+        <h3 class="text-sm font-semibold mb-2">RAG Retrieval</h3>
+        <p class="text-xs text-white/40 leading-relaxed">Sentence-transformers embed entities. FAISS retrieves top-k similar cases from claims + SEC EDGAR filings.</p>
+        <div class="mt-3 flex flex-wrap justify-center gap-1">
+          <span class="px-2 py-0.5 text-[10px] bg-white/5 rounded text-white/30">FAISS</span>
+          <span class="px-2 py-0.5 text-[10px] bg-white/5 rounded text-white/30">MiniLM</span>
+          <span class="px-2 py-0.5 text-[10px] bg-white/5 rounded text-white/30">EDGAR</span>
+        </div>
+      </div>
+
+      <!-- Stage 4 -->
+      <div class="pipeline-line text-center">
+        <div class="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-purple-500/20 to-purple-500/5 border border-purple-500/20 flex items-center justify-center mb-4">
+          <span class="text-brand-purple font-bold text-lg">4</span>
+        </div>
+        <h3 class="text-sm font-semibold mb-2">LLM Synthesis</h3>
+        <p class="text-xs text-white/40 leading-relaxed">Claude orchestrates via tool-use — calls prediction and RAG, then generates the underwriter narrative.</p>
+        <div class="mt-3 flex flex-wrap justify-center gap-1">
+          <span class="px-2 py-0.5 text-[10px] bg-white/5 rounded text-white/30">Claude</span>
+          <span class="px-2 py-0.5 text-[10px] bg-white/5 rounded text-white/30">Ollama</span>
+          <span class="px-2 py-0.5 text-[10px] bg-white/5 rounded text-white/30">Tool-use</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Stats/Numbers Section -->
+<section class="py-20 bg-dark-950 border-y border-white/5">
+  <div class="max-w-6xl mx-auto px-6">
+    <div class="grid grid-cols-4 gap-8 text-center">
+      <div>
+        <p class="text-3xl font-bold brand-gradient-text">2,126</p>
+        <p class="text-xs text-white/30 mt-1">Indexed vectors in FAISS</p>
+      </div>
+      <div>
+        <p class="text-3xl font-bold brand-gradient-text">28ms</p>
+        <p class="text-xs text-white/30 mt-1">RAG retrieval latency</p>
+      </div>
+      <div>
+        <p class="text-3xl font-bold brand-gradient-text">8</p>
+        <p class="text-xs text-white/30 mt-1">SEC EDGAR insurers indexed</p>
+      </div>
+      <div>
+        <p class="text-3xl font-bold brand-gradient-text">2.6s</p>
+        <p class="text-xs text-white/30 mt-1">End-to-end pipeline</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Tech Stack Section -->
+<section id="tech" class="py-24 bg-dark-900">
+  <div class="max-w-6xl mx-auto px-6">
+    <div class="text-center mb-16">
+      <h2 class="text-3xl font-bold mb-4">Built With</h2>
+      <p class="text-white/40 max-w-lg mx-auto">Production-grade tooling. No shortcuts.</p>
+    </div>
+
+    <div class="grid grid-cols-2 gap-x-16 gap-y-4 max-w-3xl mx-auto">
+      <div class="flex items-center justify-between py-3 border-b border-white/5">
+        <span class="text-sm text-white/60">Data Engineering</span>
+        <span class="text-sm font-medium text-white/90">PySpark</span>
+      </div>
+      <div class="flex items-center justify-between py-3 border-b border-white/5">
+        <span class="text-sm text-white/60">ML Model</span>
+        <span class="text-sm font-medium text-white/90">XGBoost + SHAP</span>
+      </div>
+      <div class="flex items-center justify-between py-3 border-b border-white/5">
+        <span class="text-sm text-white/60">NLP</span>
+        <span class="text-sm font-medium text-white/90">spaCy (custom NER)</span>
+      </div>
+      <div class="flex items-center justify-between py-3 border-b border-white/5">
+        <span class="text-sm text-white/60">Embeddings</span>
+        <span class="text-sm font-medium text-white/90">all-MiniLM-L6-v2</span>
+      </div>
+      <div class="flex items-center justify-between py-3 border-b border-white/5">
+        <span class="text-sm text-white/60">Vector Store</span>
+        <span class="text-sm font-medium text-white/90">FAISS</span>
+      </div>
+      <div class="flex items-center justify-between py-3 border-b border-white/5">
+        <span class="text-sm text-white/60">LLM</span>
+        <span class="text-sm font-medium text-white/90">Claude / Ollama</span>
+      </div>
+      <div class="flex items-center justify-between py-3 border-b border-white/5">
+        <span class="text-sm text-white/60">API</span>
+        <span class="text-sm font-medium text-white/90">FastAPI</span>
+      </div>
+      <div class="flex items-center justify-between py-3 border-b border-white/5">
+        <span class="text-sm text-white/60">Orchestration</span>
+        <span class="text-sm font-medium text-white/90">Docker Compose</span>
+      </div>
+      <div class="flex items-center justify-between py-3 border-b border-white/5">
+        <span class="text-sm text-white/60">Frontend</span>
+        <span class="text-sm font-medium text-white/90">React + Tailwind</span>
+      </div>
+      <div class="flex items-center justify-between py-3 border-b border-white/5">
+        <span class="text-sm text-white/60">CI/CD</span>
+        <span class="text-sm font-medium text-white/90">GitHub Actions</span>
+      </div>
+      <div class="flex items-center justify-between py-3 border-b border-white/5">
+        <span class="text-sm text-white/60">Data Sources</span>
+        <span class="text-sm font-medium text-white/90">Kaggle + SEC EDGAR</span>
+      </div>
+      <div class="flex items-center justify-between py-3 border-b border-white/5">
+        <span class="text-sm text-white/60">Explainability</span>
+        <span class="text-sm font-medium text-white/90">SHAP values</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Architecture Diagram Section -->
+<section class="py-24 bg-dark-950">
+  <div class="max-w-4xl mx-auto px-6">
+    <div class="text-center mb-12">
+      <h2 class="text-3xl font-bold mb-4">Architecture</h2>
+      <p class="text-white/40">4 microservices on an internal Docker network</p>
+    </div>
+
+    <div class="bg-dark-800 rounded-2xl border border-white/5 p-8 font-mono text-sm">
+      <pre class="text-white/50 leading-loose">
+<span class="text-white/20">$</span> <span class="text-brand-cyan">docker compose up --build</span>
+
+  <span class="text-white/30">+-----------------+     +-----------------+</span>
+  <span class="text-white/30">|</span> <span class="text-cyan-400">ingestion</span>       <span class="text-white/30">|     |</span> <span class="text-blue-400">prediction</span>      <span class="text-white/30">|</span>
+  <span class="text-white/30">|</span> PySpark + spaCy  <span class="text-white/30">|     |</span> XGBoost + SHAP  <span class="text-white/30">|</span>
+  <span class="text-white/30">|</span> <span class="text-white/20">:8000</span>            <span class="text-white/30">|     |</span> <span class="text-white/20">:8001</span>           <span class="text-white/30">|</span>
+  <span class="text-white/30">+-----------------+     +---------+-------+</span>
+                                    <span class="text-white/20">|</span>
+  <span class="text-white/30">+-----------------+     +---------+-------+</span>
+  <span class="text-white/30">|</span> <span class="text-indigo-400">rag</span>             <span class="text-white/30">|     |</span> <span class="text-purple-400">llm</span>             <span class="text-white/30">|</span>
+  <span class="text-white/30">|</span> FAISS + MiniLM   <span class="text-white/30">|     |</span> Claude / Ollama <span class="text-white/30">|</span>
+  <span class="text-white/30">|</span> <span class="text-white/20">:8002</span>            <span class="text-white/30">|-----+</span> <span class="text-white/20">:8003</span>           <span class="text-white/30">|</span>
+  <span class="text-white/30">+-----------------+     +-----------------+</span></pre>
+    </div>
+  </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-24 bg-dark-900 hero-gradient">
+  <div class="max-w-3xl mx-auto px-6 text-center">
+    <h2 class="text-3xl font-bold mb-4">See ARIA in Action</h2>
+    <p class="text-white/40 mb-8 max-w-md mx-auto">Upload a document and watch the full pipeline run — from entity extraction to the final underwriter narrative.</p>
+    <a href="index.html" class="inline-block px-8 py-3.5 text-sm font-semibold brand-gradient rounded-xl hover:opacity-90 transition brand-glow cursor-pointer">
+      Launch Dashboard
+    </a>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="bg-dark-950 border-t border-white/5 py-10">
+  <div class="max-w-6xl mx-auto px-6 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <img src="../assets/aria-logo.png" alt="ARIA" class="h-5 w-auto opacity-50">
+    </div>
+    <div class="flex items-center gap-6">
+      <a href="https://github.com/Tejasvaidya10/ARIA" target="_blank" class="text-white/30 hover:text-white/60 transition">
+        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+      </a>
+      <span class="text-xs text-white/20">Built by Tejas Vaidya</span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
