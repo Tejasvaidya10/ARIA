@@ -1,0 +1,37 @@
+{
+  "submission_id": "ARIA-2024-0051",
+  "filename": "auto_theft_claim.pdf",
+  "risk_tier": "LOW",
+  "risk_probability": 0.1218,
+  "predicted_claim_amount": 10464,
+  "key_risk_factors": [
+    { "name": "Vehicle age (years)", "shap_value": -0.66, "direction": "decreases_risk" },
+    { "name": "Vehicles involved", "shap_value": -0.48, "direction": "decreases_risk" },
+    { "name": "Total entities in document", "shap_value": -0.38, "direction": "decreases_risk" },
+    { "name": "Bodily injuries reported", "shap_value": 0.05, "direction": "increases_risk" },
+    { "name": "Highest monetary value", "shap_value": -0.21, "direction": "decreases_risk" }
+  ],
+  "underwriter_narrative": "## Risk Assessment Summary\n\nThis submission presents a **LOW risk** profile with a predicted claim probability of 12.2%. The case involves a single vehicle theft with no bodily injuries and limited monetary exposure.\n\n## Key Concerns\n\n- Standard vehicle theft claim with typical recovery patterns\n- No indicators of fraud based on entity analysis\n- Claim amount aligns with vehicle book value\n\n## Mitigating Factors\n\n- **Single vehicle, no injuries**: Limits total exposure significantly\n- **Older vehicle**: Lower replacement value reduces potential claim amount\n- **Clean claim history**: No prior suspicious activity patterns\n- **Police report filed**: Proper documentation supports legitimacy\n\n## Historical Comparison\n\nSimilar vehicle theft claims in our database show consistent outcomes with average payouts of $8,500-$12,000. This claim falls within expected parameters.\n\n## Recommendation\n\n**Approve** — Standard processing recommended. Claim falls within normal parameters for vehicle theft coverage. No additional review required.",
+  "similar_cases": [
+    { "policy_id": "PLY-2023-00234", "similarity_score": 0.89, "summary": "Vehicle theft, sedan, recovered, severity: minor damage", "outcome": "Claim: $8,200" },
+    { "policy_id": "PLY-2024-00892", "similarity_score": 0.84, "summary": "Vehicle theft, SUV, not recovered, severity: total loss", "outcome": "Claim: $15,400" },
+    { "policy_id": "PLY-2022-01456", "similarity_score": 0.76, "summary": "Vehicle break-in, personal property theft, severity: minor", "outcome": "Claim: $3,100" },
+    { "policy_id": "EDGAR-PROGRESSIVE-0312", "similarity_score": 0.71, "summary": "Auto theft frequency trends and reserve adequacy analysis", "outcome": "SEC Filing: Progressive 10-K" }
+  ],
+  "confidence_score": 0.824,
+  "processing_time_ms": 1847,
+  "entities": {
+    "PERIL": ["vehicle theft"],
+    "COVERAGE_TYPE": ["comprehensive auto"],
+    "MONEY": ["$12,500"],
+    "PROPERTY_TYPE": [],
+    "VEHICLE": ["2018 Honda Accord"],
+    "INJURY": []
+  },
+  "pipeline_trace": {
+    "ingestion_ms": 98,
+    "prediction_ms": 28,
+    "rag_ms": 21,
+    "llm_ms": 1700
+  }
+}

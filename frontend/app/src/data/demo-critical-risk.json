@@ -1,0 +1,38 @@
+{
+  "submission_id": "ARIA-2024-0431",
+  "filename": "multi_vehicle_collision_report.pdf",
+  "risk_tier": "CRITICAL",
+  "risk_probability": 0.8791,
+  "predicted_claim_amount": 57239,
+  "key_risk_factors": [
+    { "name": "Bodily injuries reported", "shap_value": 1.24, "direction": "increases_risk" },
+    { "name": "Vehicles involved", "shap_value": 0.89, "direction": "increases_risk" },
+    { "name": "Highest monetary value", "shap_value": 0.72, "direction": "increases_risk" },
+    { "name": "Police contacted", "shap_value": 0.45, "direction": "increases_risk" },
+    { "name": "Witness count", "shap_value": -0.18, "direction": "decreases_risk" }
+  ],
+  "underwriter_narrative": "## Risk Assessment Summary\n\nThis submission presents a **CRITICAL risk** profile with a predicted claim probability of 87.9%. The multi-vehicle collision involves significant bodily injuries and substantial property damage across multiple parties.\n\n## Key Concerns\n\n- **Multiple bodily injuries**: Three parties reporting injuries significantly elevates liability exposure and potential for litigation\n- **Multi-vehicle involvement**: Four vehicles involved creates complex liability determination and cross-claim potential\n- **High monetary exposure**: Combined vehicle damages and medical costs projected to exceed $50,000\n- **Potential subrogation complexity**: Multiple insurers involved increases administrative burden\n\n## Mitigating Factors\n\n- Multiple witnesses present may aid in liability determination\n- Police report provides documented evidence chain\n- No fatalities reported reduces maximum exposure ceiling\n\n## Historical Comparison\n\nMulti-vehicle collisions with bodily injuries represent the highest-severity category in our claims database. Historical data shows 78% of similar cases exceed initial reserve estimates. SEC EDGAR filings from Allstate and Chubb highlight increasing severity trends in multi-party auto claims.\n\n## Recommendation\n\n**Flag for Senior Review** — This submission requires immediate escalation to senior underwriting team. Recommend establishing elevated reserves, engaging legal counsel for potential litigation, and initiating early settlement discussions where possible.",
+  "similar_cases": [
+    { "policy_id": "PLY-2024-00431", "similarity_score": 0.94, "summary": "Multi-vehicle collision, 3 vehicles, bodily injury, severity: total loss", "outcome": "Claim: $62,800" },
+    { "policy_id": "PLY-2023-01102", "similarity_score": 0.91, "summary": "Multi-vehicle pileup, highway, multiple injuries, severity: critical", "outcome": "Claim: $89,300" },
+    { "policy_id": "PLY-2023-00678", "similarity_score": 0.85, "summary": "Two-vehicle collision, pedestrian injury, severity: major damage", "outcome": "Claim: $47,500" },
+    { "policy_id": "EDGAR-ALLSTATE-0567", "similarity_score": 0.77, "summary": "Multi-party auto liability trends and reserve strengthening disclosures", "outcome": "SEC Filing: Allstate 10-K" },
+    { "policy_id": "EDGAR-CHUBB-0234", "similarity_score": 0.72, "summary": "Bodily injury severity trends in personal auto lines", "outcome": "SEC Filing: Chubb 10-K" }
+  ],
+  "confidence_score": 0.541,
+  "processing_time_ms": 3201,
+  "entities": {
+    "PERIL": ["multi-vehicle collision", "bodily injury"],
+    "COVERAGE_TYPE": ["personal auto liability", "medical payments", "uninsured motorist"],
+    "MONEY": ["$35,000", "$22,000", "$18,500"],
+    "PROPERTY_TYPE": [],
+    "VEHICLE": ["2022 Toyota Camry", "2021 Ford F-150", "2023 BMW X3", "2020 Honda CR-V"],
+    "INJURY": ["whiplash", "fractured wrist", "concussion"]
+  },
+  "pipeline_trace": {
+    "ingestion_ms": 187,
+    "prediction_ms": 41,
+    "rag_ms": 32,
+    "llm_ms": 2941
+  }
+}

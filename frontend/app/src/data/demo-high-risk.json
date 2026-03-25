@@ -1,0 +1,38 @@
+{
+  "submission_id": "ARIA-2024-0847",
+  "filename": "commercial_property_policy.pdf",
+  "risk_tier": "HIGH",
+  "risk_probability": 0.7274,
+  "predicted_claim_amount": 82991,
+  "key_risk_factors": [
+    { "name": "Highest monetary value", "shap_value": 0.921, "direction": "increases_risk" },
+    { "name": "Police contacted", "shap_value": 0.365, "direction": "increases_risk" },
+    { "name": "Average monetary value", "shap_value": 0.196, "direction": "increases_risk" },
+    { "name": "Vehicles involved", "shap_value": -0.370, "direction": "decreases_risk" },
+    { "name": "Total entities in document", "shap_value": -0.339, "direction": "decreases_risk" }
+  ],
+  "underwriter_narrative": "## Risk Assessment Summary\n\nThis submission presents a **HIGH risk** profile with a predicted claim probability of 72.7%. The analysis identifies significant exposure through fire and flood perils affecting a commercial warehouse property.\n\n## Key Concerns\n\n- **High monetary exposure**: The insured values ($1,500,000 property, $45,000 contents) significantly exceed typical thresholds for this property class\n- **Multiple peril exposure**: Fire, flood, and wind damage create compounding risk scenarios\n- **Property construction**: Wood-frame commercial construction increases vulnerability to fire-related losses\n\n## Mitigating Factors\n\n- Umbrella coverage of $2M provides additional protection layer\n- Single-location exposure limits geographic concentration risk\n- Commercial general liability coverage is comprehensive\n\n## Historical Comparison\n\nBased on 5 similar cases in our database, properties with comparable risk profiles have experienced claim rates 2.3x above the portfolio average. SEC EDGAR filings from Travelers and AIG indicate elevated reserve requirements for similar commercial property exposures.\n\n## Recommendation\n\n**Conditional Approval** — Recommend approval subject to updated property inspection, fire suppression system verification, and flood zone reassessment. Consider premium adjustment of +15-20% to reflect elevated risk profile.",
+  "similar_cases": [
+    { "policy_id": "PLY-2023-00847", "similarity_score": 0.92, "summary": "Single vehicle collision, commercial property, severity: major damage", "outcome": "Claim: $71,610" },
+    { "policy_id": "PLY-2024-01203", "similarity_score": 0.87, "summary": "Multi-vehicle collision, property damage, severity: major damage", "outcome": "Claim: $63,400" },
+    { "policy_id": "PLY-2022-00519", "similarity_score": 0.79, "summary": "Property fire, commercial warehouse, severity: significant", "outcome": "Claim: $45,200" },
+    { "policy_id": "EDGAR-TRAVELERS-0948", "similarity_score": 0.73, "summary": "Catastrophe reinsurance disclosure: wind, fire, and flood exposure in commercial lines", "outcome": "SEC Filing: Travelers 10-K" },
+    { "policy_id": "EDGAR-AIG-0142", "similarity_score": 0.68, "summary": "Property risk reserves and catastrophe modeling for commercial portfolios", "outcome": "SEC Filing: AIG 10-K" }
+  ],
+  "confidence_score": 0.657,
+  "processing_time_ms": 2603,
+  "entities": {
+    "PERIL": ["fire", "flood", "wind damage"],
+    "COVERAGE_TYPE": ["commercial general liability", "umbrella $2M"],
+    "MONEY": ["$1,500,000", "$45,000"],
+    "PROPERTY_TYPE": ["wood-frame commercial warehouse"],
+    "VEHICLE": [],
+    "INJURY": []
+  },
+  "pipeline_trace": {
+    "ingestion_ms": 142,
+    "prediction_ms": 33,
+    "rag_ms": 28,
+    "llm_ms": 2400
+  }
+}
