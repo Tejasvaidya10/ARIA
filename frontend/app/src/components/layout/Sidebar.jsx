@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import Logo from '@/components/shared/Logo'
 
 const PIPELINE_SERVICES = [
@@ -10,7 +10,13 @@ const PIPELINE_SERVICES = [
 
 export default function Sidebar({ view, onViewChange }) {
   const location = useLocation()
+  const navigate = useNavigate()
   const isEval = location.pathname === '/eval'
+
+  const handleViewChange = (newView) => {
+    if (isEval) navigate('/app')
+    onViewChange(newView)
+  }
 
   return (
     <aside className="w-64 bg-dark-800 min-h-screen flex flex-col fixed left-0 top-0 bottom-0 z-10">
@@ -30,7 +36,7 @@ export default function Sidebar({ view, onViewChange }) {
         <p className="text-white/25 text-[10px] font-semibold uppercase tracking-widest px-3 mb-2">Analysis</p>
 
         <button
-          onClick={() => onViewChange('upload')}
+          onClick={() => handleViewChange('upload')}
           className={`sidebar-item w-full flex items-center gap-3 px-3 py-2.5 rounded-r-lg text-sm mb-0.5 ${
             !isEval && view === 'upload' ? 'sidebar-active text-white/90' : 'text-white/50'
           }`}
@@ -42,7 +48,7 @@ export default function Sidebar({ view, onViewChange }) {
         </button>
 
         <button
-          onClick={() => onViewChange('analysis')}
+          onClick={() => handleViewChange('analysis')}
           className={`sidebar-item w-full flex items-center gap-3 px-3 py-2.5 rounded-r-lg text-sm mb-0.5 ${
             !isEval && view === 'analysis' ? 'sidebar-active text-white/90' : 'text-white/50'
           }`}
