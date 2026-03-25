@@ -1,28 +1,55 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { getAllDemos } from '@/hooks/useDemoData'
+import { runPipeline } from '@/lib/api'
 import RiskBadge from '@/components/shared/RiskBadge'
 
 const STAGE_LABELS = ['Extracting entities...', 'Running prediction model...', 'Searching similar cases...', 'Generating narrative...']
 
-export default function UploadView({ onSelectDemo }) {
+export default function UploadView({ onSelectDemo, onLiveResult }) {
   const [processing, setProcessing] = useState(false)
   const [stage, setStage] = useState(0)
+  const [error, setError] = useState(null)
+  const fileRef = useRef(null)
   const demos = getAllDemos()
 
-  function handleUpload() {
+  async function handleFile(file) {
+    if (!file || !file.name.toLowerCase().endsWith('.pdf')) {
+      setError('Please upload a PDF file.')
+      return
+    }
+    setError(null)
     setProcessing(true)
     setStage(0)
-    let s = 0
-    const interval = setInterval(() => {
-      s++
-      if (s >= STAGE_LABELS.length) {
-        clearInterval(interval)
-        setProcessing(false)
-        onSelectDemo('high')
-      } else {
-        setStage(s)
-      }
-    }, 700)
+
+    try {
+      const result = await runPipeline(file, setStage)
+      setProcessing(false)
+      onLiveResult(result)
+    } catch (err) {
+      console.error(err)
+      setProcessing(false)
+      setError(err.message || 'Pipeline failed. Make sure Docker services are running.')
+    }
+  }
+
+  function handleUploadClick() {
+    fileRef.current?.click()
+  }
+
+  function handleFileChange(e) {
+    const file = e.target.files?.[0]
+    if (file) handleFile(file)
+    e.target.value = ''
+  }
+
+  function handleDrop(e) {
+    e.preventDefault()
+    const file = e.dataTransfer.files?.[0]
+    if (file) handleFile(file)
+  }
+
+  function handleDragOver(e) {
+    e.preventDefault()
   }
 
   if (processing) {
@@ -49,8 +76,21 @@ export default function UploadView({ onSelectDemo }) {
 
   return (
     <div className="max-w-2xl mx-auto fade-in">
+      <input
+        ref={fileRef}
+        type="file"
+        accept=".pdf"
+        className="hidden"
+        onChange={handleFileChange}
+      />
+
       {/* Upload Zone */}
-      <div onClick={handleUpload} className="upload-zone rounded-xl p-14 text-center cursor-pointer bg-white">
+      <div
+        onClick={handleUploadClick}
+        onDrop={handleDrop}
+        onDragOver={handleDragOver}
+        className="upload-zone rounded-xl p-14 text-center cursor-pointer bg-white"
+      >
         <div className="w-16 h-16 mx-auto mb-5 rounded-2xl brand-gradient flex items-center justify-center brand-glow">
           <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
@@ -63,6 +103,13 @@ export default function UploadView({ onSelectDemo }) {
         </span>
         <p className="text-ink-300 text-xs mt-5">PDF only, max 25MB, up to 200 pages</p>
       </div>
+
+      {/* Error message */}
+      {error && (
+        <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+          {error}
+        </div>
+      )}
 
       {/* Recent Submissions (Demo) */}
       <div className="mt-10">

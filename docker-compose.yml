@@ -53,6 +53,7 @@ services:
     environment:
       LLM_PREDICTION_SERVICE_URL: http://prediction:8001
       LLM_RAG_SERVICE_URL: http://rag:8002
+      LLM_OLLAMA_BASE_URL: http://host.docker.internal:11434
     depends_on:
       prediction:
         condition: service_healthy

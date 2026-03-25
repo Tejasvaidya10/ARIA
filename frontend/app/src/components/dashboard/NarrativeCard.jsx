@@ -25,9 +25,12 @@ export default function NarrativeCard({ narrative }) {
 }
 
 function parseNarrative(markdown) {
+  if (!markdown) return [{ heading: null, body: 'No narrative generated.' }]
+
   const lines = markdown.split('\n')
   const sections = []
   let current = null
+  let preamble = ''
 
   for (const line of lines) {
     const headingMatch = line.match(/^##\s+(.+)/)
@@ -36,9 +39,19 @@ function parseNarrative(markdown) {
       current = { heading: headingMatch[1], body: '' }
     } else if (current) {
       current.body += (current.body ? '\n' : '') + line
+    } else {
+      preamble += (preamble ? '\n' : '') + line
     }
   }
   if (current) sections.push(current)
+
+  // If no ## headings were found, treat the whole text as one section
+  if (sections.length === 0 && preamble.trim()) {
+    sections.push({ heading: null, body: preamble })
+  } else if (preamble.trim() && sections.length > 0) {
+    sections.unshift({ heading: null, body: preamble })
+  }
+
   return sections
 }
 
