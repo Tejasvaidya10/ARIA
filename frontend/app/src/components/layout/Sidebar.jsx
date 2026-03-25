@@ -17,9 +17,12 @@ export default function Sidebar({ view, onViewChange }) {
       {/* Logo */}
       <div className="px-5 py-5 border-b border-white/5">
         <Link to="/" className="flex items-center gap-3">
-          <Logo className="h-8 w-auto" />
+          <Logo className="h-9 w-9 rounded-lg" />
+          <div>
+            <p className="text-white/90 text-sm font-semibold tracking-wide">ARIA</p>
+            <p className="text-white/30 text-[10px]">Automated Risk Intelligence</p>
+          </div>
         </Link>
-        <p className="text-white/30 text-xs mt-2">Automated Risk Intelligence</p>
       </div>
 
       {/* Nav items */}

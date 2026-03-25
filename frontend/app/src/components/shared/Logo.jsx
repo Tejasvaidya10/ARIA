@@ -1,5 +1,6 @@
-export default function Logo({ className = 'h-8' }) {
+export default function Logo({ className = 'h-8', variant = 'icon' }) {
+  const src = variant === 'hero' ? '/aria-hero.png' : '/aria-navbar.png'
   return (
-    <img src="/aria-logo.png" alt="ARIA" className={className} />
+    <img src={src} alt="ARIA" className={className} />
   )
 }

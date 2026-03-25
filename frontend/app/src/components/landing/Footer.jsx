@@ -4,7 +4,7 @@ export default function Footer() {
   return (
     <footer className="bg-dark-950 border-t border-white/5 py-10">
       <div className="max-w-6xl mx-auto px-6 flex items-center justify-between">
-        <Logo className="h-5 w-auto opacity-50" />
+        <Logo variant="hero" className="h-5 w-auto opacity-50" />
         <div className="flex items-center gap-6">
           <a href="https://github.com/Tejasvaidya10/ARIA" target="_blank" rel="noopener noreferrer" className="text-white/30 hover:text-white/60 transition">
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
