@@ -33,7 +33,7 @@ function parseNarrative(markdown) {
   let preamble = ''
 
   for (const line of lines) {
-    const headingMatch = line.match(/^##\s+(.+)/)
+    const headingMatch = line.match(/^##\s+(.+)/) || line.match(/^\*\*(.+?):\*\*\s*$/)
     if (headingMatch) {
       if (current) sections.push(current)
       current = { heading: headingMatch[1], body: '' }
@@ -58,8 +58,14 @@ function parseNarrative(markdown) {
 function formatBody(text) {
   return text
     .trim()
+    .replace(/\n{3,}/g, '\n\n')           // collapse 3+ newlines into 2
     .replace(/\*\*(.+?)\*\*/g, '<strong class="text-ink-900">$1</strong>')
+    .replace(/\* \*\*(.+?)\*\*:/g, '&bull; <strong class="text-ink-900">$1</strong>:')
     .replace(/- \*\*(.+?)\*\*:/g, '&bull; <strong class="text-ink-900">$1</strong>:')
+    .replace(/^\* (.+)/gm, '&bull; $1')
     .replace(/^- (.+)/gm, '&bull; $1')
-    .replace(/\n/g, '<br/>')
+    .replace(/^\d+\.\s+/gm, '&bull; ')    // numbered lists → bullets
+    .replace(/\n(&bull;)/g, '<br/>$1')     // line break before bullets
+    .replace(/\n\n/g, '<br/><br/>')        // double newline = paragraph break
+    .replace(/\n/g, ' ')                   // single newline = space (wrapping)
 }
