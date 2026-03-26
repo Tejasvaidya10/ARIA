@@ -1,13 +1,13 @@
 export default function SimilarCases({ cases }) {
   return (
-    <div className="card p-5">
-      <div className="flex items-center justify-between mb-1">
+    <div className="card p-5 flex flex-col">
+      <div className="flex items-center justify-between mb-1 shrink-0">
         <h3 className="text-sm font-semibold text-ink-900">Similar Cases</h3>
         <span className="text-[10px] text-ink-400 font-mono">2,126 vectors</span>
       </div>
-      <p className="text-[11px] text-ink-400 mb-4">FAISS nearest-neighbor retrieval</p>
+      <p className="text-[11px] text-ink-400 mb-4 shrink-0">FAISS nearest-neighbor retrieval</p>
 
-      <div className="space-y-2.5">
+      <div className="space-y-2.5 overflow-y-auto max-h-[450px] pr-1">
         {cases.map((c) => {
           const isEdgar = c.policy_id.startsWith('EDGAR-')
           const simPct = Math.round(c.similarity_score * 100)

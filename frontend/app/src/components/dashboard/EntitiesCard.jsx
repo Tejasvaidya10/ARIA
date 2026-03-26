@@ -20,9 +20,9 @@ export default function EntitiesCard({ entities }) {
   const displayEntities = Object.entries(entities).filter(([, values]) => values.length > 0)
 
   return (
-    <div className="card p-5">
-      <h3 className="text-sm font-semibold text-ink-900 mb-3">Extracted Entities</h3>
-      <div className="space-y-2.5">
+    <div className="card p-5 flex flex-col">
+      <h3 className="text-sm font-semibold text-ink-900 mb-3 shrink-0">Extracted Entities</h3>
+      <div className="space-y-2.5 overflow-y-auto max-h-[300px] pr-1">
         {displayEntities.map(([type, values]) => (
           <div key={type}>
             <span className={`inline-block px-2 py-0.5 text-[10px] font-semibold rounded mb-1 uppercase tracking-wide ${ENTITY_STYLES[type] || 'bg-gray-50 text-gray-600'}`}>
