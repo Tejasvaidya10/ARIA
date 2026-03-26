@@ -530,4 +530,4 @@ Tests use `TestClient` (not `httpx.AsyncClient`) to ensure FastAPI lifespan even
 
 ## License
 
-This project is for educational and demonstration purposes.
+This project is licensed under the MIT License.

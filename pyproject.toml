@@ -1,8 +1,75 @@
 [project]
 name = "aria"
 version = "0.1.0"
-description = "Automated Risk Intelligence Assistant"
+description = "Automated Risk Intelligence Assistant - A 4-stage GenAI pipeline for insurance underwriting"
 requires-python = ">=3.12"
+license = {text = "MIT"}
+authors = [
+    {name = "Tejas Vaidya"},
+]
+keywords = ["insurance", "underwriting", "genai", "ner", "xgboost", "rag", "faiss", "llm"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Financial and Insurance Industry",
+    "Programming Language :: Python :: 3.12",
+    "Framework :: FastAPI",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+[project.urls]
+Homepage = "https://aria-pi-blond.vercel.app"
+Repository = "https://github.com/Tejasvaidya10/ARIA"
+
+# Core dependencies shared across all services
+dependencies = [
+    "fastapi==0.115.6",
+    "uvicorn==0.34.0",
+    "pydantic==2.10.4",
+    "pydantic-settings==2.7.1",
+    "structlog==24.4.0",
+    "slowapi==0.1.9",
+    "prometheus-fastapi-instrumentator==7.0.2",
+    "httpx==0.28.1",
+    "numpy==2.4.3",
+]
+
+[project.optional-dependencies]
+# Per-service dependencies (install the extras you need)
+ingestion = [
+    "pyspark==3.5.4",
+    "PyMuPDF==1.25.3",
+    "spacy>=3.8.4,<4.0",
+    "python-multipart==0.0.20",
+]
+prediction = [
+    "xgboost==3.2.0",
+    "shap==0.51.0",
+    "scikit-learn==1.8.0",
+]
+rag = [
+    "sentence-transformers==4.1.0",
+    "faiss-cpu==1.11.0",
+]
+llm = [
+    "anthropic==0.52.0",
+]
+# All services combined
+all = [
+    "aria[ingestion]",
+    "aria[prediction]",
+    "aria[rag]",
+    "aria[llm]",
+]
+# Development tools
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "mypy>=1.10",
+    "ruff>=0.4",
+    "pre-commit>=3.7",
+]
+
+# ---------- Tool configuration ----------
 
 [tool.ruff]
 target-version = "py312"
