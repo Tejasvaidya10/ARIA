@@ -10,6 +10,7 @@ from slowapi.util import get_remote_address
 from services.llm.api.dependencies import get_http_client, get_provider, get_settings
 from services.llm.config import LLMSettings
 from services.llm.core.schemas import SynthesisRequest
+from services.llm.services.hallucination import detect_hallucinations
 from services.llm.services.provider import LLMProvider
 from services.shared.exceptions import SynthesisError
 from services.shared.schemas import SubmissionAnalysis
@@ -52,6 +53,16 @@ async def synthesize(
             content={"error": "Synthesis failed", "detail": str(exc)},
         )
 
+    hallucination_check = None
+    if settings.enable_hallucination_check and settings.anthropic_api_key:
+        hallucination_check = await detect_hallucinations(
+            result.underwriter_narrative,
+            body.entity_summary,
+            result,
+            settings.anthropic_api_key,
+            settings.anthropic_model,
+        )
+
     elapsed_ms = round((time.perf_counter() - start) * 1000, 2)
 
     analysis = SubmissionAnalysis(
@@ -64,6 +75,7 @@ async def synthesize(
         similar_cases=result.similar_cases,
         confidence_score=result.confidence_score,
         processing_time_ms=elapsed_ms,
+        hallucination_check=hallucination_check,
     )
 
     await logger.ainfo(
