@@ -30,3 +30,4 @@ class LLMSettings(BaseServiceSettings):
     max_tool_rounds: int = 5
     rate_limit: str = "10/minute"
     request_timeout: float = 30.0
+    enable_hallucination_check: bool = False

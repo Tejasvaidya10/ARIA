@@ -23,6 +23,13 @@ class SimilarCase(BaseModel):
     outcome: str | None = None
 
 
+class HallucinationCheck(BaseModel):
+    detected: bool
+    count: int
+    flags: list[str]
+    confidence: float = Field(ge=0.0, le=1.0)
+
+
 class SubmissionAnalysis(BaseModel):
     submission_id: str
     risk_tier: RiskTier
@@ -33,3 +40,4 @@ class SubmissionAnalysis(BaseModel):
     similar_cases: list[SimilarCase]
     confidence_score: float = Field(ge=0.0, le=1.0)
     processing_time_ms: float
+    hallucination_check: HallucinationCheck | None = None
