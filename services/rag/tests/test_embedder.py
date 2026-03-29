@@ -42,6 +42,21 @@ def test_embed_batch_shape() -> None:
     assert vecs.shape == (3, 384)
 
 
+def test_embed_text_cache_hit() -> None:
+    from services.rag.services.embedder import _embed_cache
+
+    model = load_embedding_model("all-MiniLM-L6-v2")
+    text = "unique cache test string for batch c"
+
+    _embed_cache.pop(text, None)
+    embed_text(model, text)
+    assert text in _embed_cache
+
+    v1 = embed_text(model, text)
+    v2 = embed_text(model, text)
+    assert np.array_equal(v1, v2)
+
+
 def test_normalized_vectors() -> None:
     """Normalized vectors should have unit length (L2 norm ~= 1.0)."""
     model = load_embedding_model("all-MiniLM-L6-v2")

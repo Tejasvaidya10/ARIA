@@ -1,6 +1,9 @@
 import numpy as np
 from sentence_transformers import SentenceTransformer
 
+_embed_cache: dict[str, np.ndarray] = {}  # type: ignore[type-arg]
+_EMBED_CACHE_MAX = 512
+
 
 def load_embedding_model(model_name: str) -> SentenceTransformer:
     """Load a sentence-transformers model.
@@ -27,9 +30,17 @@ def entities_to_text(entity_summary: dict[str, list[str]]) -> str:
 
 
 def embed_text(model: SentenceTransformer, text: str) -> np.ndarray:  # type: ignore[type-arg]
-    """Encode a single text string into a dense vector."""
+    """Encode a single text string into a dense vector, caching the result."""
+    if text in _embed_cache:
+        return _embed_cache[text]
+
     embedding = model.encode(text, normalize_embeddings=True)
-    return np.array(embedding, dtype=np.float32).reshape(1, -1)
+    result = np.array(embedding, dtype=np.float32).reshape(1, -1)
+
+    if len(_embed_cache) >= _EMBED_CACHE_MAX:
+        _embed_cache.pop(next(iter(_embed_cache)))
+    _embed_cache[text] = result
+    return result
 
 
 def embed_batch(model: SentenceTransformer, texts: list[str]) -> np.ndarray:  # type: ignore[type-arg]
