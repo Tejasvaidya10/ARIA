@@ -12,7 +12,9 @@ def settings() -> LLMSettings:
     return LLMSettings()
 
 
-async def test_execute_tool_prediction_timeout_returns_fallback(monkeypatch, settings) -> None:
+async def test_execute_tool_prediction_timeout_returns_fallback(
+    monkeypatch: pytest.MonkeyPatch, settings: LLMSettings
+) -> None:
     async def instant_sleep(_: float) -> None:
         pass
 
@@ -34,7 +36,9 @@ async def test_execute_tool_prediction_timeout_returns_fallback(monkeypatch, set
     assert mock_client.post.call_count == 3
 
 
-async def test_execute_tool_rag_503_returns_fallback(monkeypatch, settings) -> None:
+async def test_execute_tool_rag_503_returns_fallback(
+    monkeypatch: pytest.MonkeyPatch, settings: LLMSettings
+) -> None:
     async def instant_sleep(_: float) -> None:
         pass
 
@@ -60,7 +64,7 @@ async def test_execute_tool_rag_503_returns_fallback(monkeypatch, settings) -> N
     assert mock_client.post.call_count == 3
 
 
-async def test_execute_tool_success_passes_through(settings) -> None:
+async def test_execute_tool_success_passes_through(settings: LLMSettings) -> None:
     mock_response = MagicMock()
     mock_response.raise_for_status = MagicMock()
     mock_response.json.return_value = {"risk_tier": "HIGH", "risk_probability": 0.8}
@@ -80,7 +84,7 @@ async def test_execute_tool_success_passes_through(settings) -> None:
     assert mock_client.post.call_count == 1
 
 
-async def test_execute_tool_404_not_retried(settings) -> None:
+async def test_execute_tool_404_not_retried(settings: LLMSettings) -> None:
     mock_response = MagicMock()
     mock_response.status_code = 404
 
@@ -100,7 +104,7 @@ async def test_execute_tool_404_not_retried(settings) -> None:
     assert mock_client.post.call_count == 1
 
 
-async def test_execute_tool_unknown_tool_returns_error(settings) -> None:
+async def test_execute_tool_unknown_tool_returns_error(settings: LLMSettings) -> None:
     mock_client = AsyncMock(spec=httpx.AsyncClient)
 
     result = await execute_tool(
