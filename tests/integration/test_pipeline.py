@@ -88,3 +88,35 @@ def test_pipeline_prediction_fallback(rag_client: TestClient) -> None:
     data = resp.json()
     assert data["risk_tier"] == "MODERATE"
     assert data["risk_probability"] == 0.5
+
+
+def test_request_id_propagates(
+    prediction_client: TestClient,
+    rag_client: TestClient,
+) -> None:
+    """X-Request-ID sent to LLM must appear in headers forwarded to prediction."""
+    from services.llm.api.dependencies import get_http_client, get_provider
+    from services.llm.app import create_app
+    from tests.integration.helpers import ServiceRouter
+
+    router = ServiceRouter(
+        {
+            "http://localhost:8001": prediction_client,
+            "http://localhost:8002": rag_client,
+        }
+    )
+    routed_http_client = httpx.AsyncClient(transport=router)
+
+    app = create_app()
+    app.dependency_overrides[get_provider] = lambda: PassthroughProvider()
+    app.dependency_overrides[get_http_client] = lambda: routed_http_client
+
+    with TestClient(app) as c:
+        c.post(
+            "/synthesize",
+            json={"submission_id": "req-id-test", "entity_summary": FIRE_SUBMISSION},
+            headers={"X-Request-ID": "integration-test-123"},
+        )
+
+    assert "x-request-id" in router.last_request_headers
+    assert router.last_request_headers["x-request-id"] == "integration-test-123"
