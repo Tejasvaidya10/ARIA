@@ -1,6 +1,7 @@
+import httpx
 from fastapi.testclient import TestClient
 
-from tests.integration.helpers import FIRE_SUBMISSION
+from tests.integration.helpers import FIRE_SUBMISSION, PassthroughProvider
 
 
 def test_prediction_fire_submission(prediction_client: TestClient) -> None:
@@ -46,3 +47,44 @@ def test_full_pipeline_synthesizes_narrative(routed_llm_client: TestClient) -> N
     assert isinstance(data["similar_cases"], list)
     assert len(data["underwriter_narrative"]) > 0
     assert data["processing_time_ms"] > 0
+
+
+def test_pipeline_prediction_fallback(rag_client: TestClient) -> None:
+    """Prediction service returns 404 (non-retryable) — LLM falls back gracefully."""
+
+    class PredictionDown(httpx.AsyncBaseTransport):
+        async def handle_async_request(self, request: httpx.Request) -> httpx.Response:
+            if ":8001" in str(request.url):
+                return httpx.Response(404, content=b'{"error": "not found"}')
+            resp = rag_client.request(
+                method=request.method,
+                url=request.url.path,
+                content=request.content,
+                headers=dict(request.headers),
+            )
+            return httpx.Response(
+                status_code=resp.status_code,
+                headers=dict(resp.headers),
+                content=resp.content,
+            )
+
+    from services.llm.api.dependencies import get_http_client, get_provider
+    from services.llm.app import create_app
+
+    transport = PredictionDown()
+    routed_http_client = httpx.AsyncClient(transport=transport)
+
+    app = create_app()
+    app.dependency_overrides[get_provider] = lambda: PassthroughProvider()
+    app.dependency_overrides[get_http_client] = lambda: routed_http_client
+
+    with TestClient(app) as c:
+        resp = c.post(
+            "/synthesize",
+            json={"submission_id": "fallback-test", "entity_summary": FIRE_SUBMISSION},
+        )
+
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["risk_tier"] == "MODERATE"
+    assert data["risk_probability"] == 0.5
