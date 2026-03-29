@@ -14,6 +14,9 @@ from services.prediction.core.schemas import PredictionResponse
 from services.shared.exceptions import ModelNotLoadedError
 from services.shared.schemas import RiskFactor, RiskTier
 
+_shap_cache: dict[bytes, list[RiskFactor]] = {}
+_SHAP_CACHE_MAX = 512
+
 
 def load_model(path: str) -> xgb.Booster:
     if not Path(path).exists():
@@ -25,6 +28,21 @@ def load_model(path: str) -> xgb.Booster:
 
 def create_explainer(model: xgb.Booster) -> shap.TreeExplainer:
     return shap.TreeExplainer(model)
+
+
+def _get_shap_factors(explainer: shap.TreeExplainer, features: np.ndarray) -> list[RiskFactor]:  # type: ignore[type-arg]
+    key = features.tobytes()
+    if key in _shap_cache:
+        return _shap_cache[key]
+
+    dmatrix = xgb.DMatrix(features.reshape(1, -1), feature_names=FEATURE_NAMES)
+    shap_values = explainer.shap_values(dmatrix)
+    factors = _extract_risk_factors(shap_values[0])
+
+    if len(_shap_cache) >= _SHAP_CACHE_MAX:
+        _shap_cache.pop(next(iter(_shap_cache)))
+    _shap_cache[key] = factors
+    return factors
 
 
 def predict_risk(
@@ -43,8 +61,7 @@ def predict_risk(
     predicted_amount = float(severity_model.predict(dmatrix)[0])
     predicted_amount = max(predicted_amount, 0.0)
 
-    shap_values = probability_explainer.shap_values(dmatrix)
-    risk_factors = _extract_risk_factors(shap_values[0])
+    risk_factors = _get_shap_factors(probability_explainer, features)
     risk_tier = classify_risk_tier(risk_probability, settings)
     confidence = abs(risk_probability - 0.5) * 2
 

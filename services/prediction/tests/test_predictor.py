@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 import shap
+import xgboost as xgb
 
 from services.prediction.config import PredictionSettings
 from services.prediction.core.constants import FEATURE_NAMES
@@ -53,6 +54,22 @@ def test_classify_risk_tier() -> None:
     assert classify_risk_tier(0.30, settings) == RiskTier.MODERATE
     assert classify_risk_tier(0.60, settings) == RiskTier.HIGH
     assert classify_risk_tier(0.80, settings) == RiskTier.CRITICAL
+
+
+def test_shap_cache_hit(
+    models: tuple[xgb.Booster, xgb.Booster, shap.TreeExplainer], settings: PredictionSettings
+) -> None:
+    from services.prediction.services.predictor import _shap_cache
+
+    prob_model, sev_model, explainer = models
+    features = np.random.default_rng(99).random(len(FEATURE_NAMES))
+
+    _shap_cache.clear()
+    predict_risk(prob_model, sev_model, explainer, features, settings)
+    assert len(_shap_cache) == 1
+
+    predict_risk(prob_model, sev_model, explainer, features, settings)
+    assert len(_shap_cache) == 1
 
 
 def test_load_model_missing_path() -> None:
