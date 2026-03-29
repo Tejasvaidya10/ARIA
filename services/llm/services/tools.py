@@ -3,6 +3,7 @@ from typing import Any
 
 import httpx
 import structlog
+from tenacity import retry, retry_if_exception, stop_after_attempt, wait_exponential
 
 from services.llm.config import LLMSettings
 from services.shared.middleware import request_id_var
@@ -24,8 +25,25 @@ Guidelines for the narrative:
 - Be direct and concise -- underwriters are busy
 - Include a recommendation: approve, approve with conditions, or decline
 
+If a tool returns is_fallback: true, that service was unavailable. \
+Explicitly note the missing data in your narrative. \
+Do not fabricate risk scores, SHAP factors, or similar cases.
+
 Always call both tools before writing your assessment."""
 
+PREDICTION_FALLBACK: dict[str, Any] = {
+    "risk_tier": "MODERATE",
+    "risk_probability": 0.5,
+    "predicted_claim": 0.0,
+    "shap_factors": [],
+    "confidence": 0.0,
+    "is_fallback": True,
+}
+
+RAG_FALLBACK: dict[str, Any] = {
+    "similar_cases": [],
+    "is_fallback": True,
+}
 
 TOOL_DEFINITIONS: list[dict[str, Any]] = [
     {
@@ -87,6 +105,32 @@ TOOL_DEFINITIONS: list[dict[str, Any]] = [
 ]
 
 
+def _is_retryable(exc: BaseException) -> bool:
+    if isinstance(exc, httpx.TimeoutException | httpx.ConnectError):
+        return True
+    if isinstance(exc, httpx.HTTPStatusError):
+        return exc.response.status_code >= 500
+    return False
+
+
+@retry(
+    stop=stop_after_attempt(3),
+    wait=wait_exponential(multiplier=1, min=1, max=10),
+    retry=retry_if_exception(_is_retryable),
+    reraise=True,
+)
+async def _post_with_retry(
+    http_client: httpx.AsyncClient,
+    url: str,
+    payload: dict[str, Any],
+    headers: dict[str, str],
+) -> dict[str, Any]:
+    resp = await http_client.post(url, json=payload, headers=headers)
+    resp.raise_for_status()
+    result: dict[str, Any] = resp.json()
+    return result
+
+
 async def execute_tool(
     tool_name: str,
     tool_input: dict[str, Any],
@@ -105,33 +149,22 @@ async def execute_tool(
             "submission_id": tool_input.get("submission_id", "unknown"),
             "entity_summary": tool_input.get("entity_summary", {}),
         }
+        fallback = PREDICTION_FALLBACK
     elif tool_name == "get_similar_cases":
         url = f"{settings.rag_service_url}/search"
         payload = {
             "entity_summary": tool_input.get("entity_summary", {}),
             "top_k": tool_input.get("top_k", 5),
         }
+        fallback = RAG_FALLBACK
     else:
         return {"error": f"Unknown tool: {tool_name}"}
 
     try:
-        resp = await http_client.post(
-            url, json=payload, headers=headers, timeout=settings.request_timeout
-        )
-        resp.raise_for_status()
-        result: dict[str, Any] = resp.json()
-        return result
-    except httpx.HTTPStatusError as exc:
-        await logger.aerror(
-            "tool_call_failed",
-            tool=tool_name,
-            status=exc.response.status_code,
-            body=exc.response.text[:500],
-        )
-        return {"error": f"{tool_name} returned {exc.response.status_code}"}
-    except httpx.RequestError as exc:
-        await logger.aerror("tool_call_error", tool=tool_name, error=str(exc))
-        return {"error": f"{tool_name} unavailable: {exc}"}
+        return await _post_with_retry(http_client, url, payload, headers)
+    except Exception as exc:
+        await logger.aerror("tool_call_failed_all_retries", tool=tool_name, error=str(exc))
+        return fallback
 
 
 def format_tool_results_prompt(
