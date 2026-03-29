@@ -28,7 +28,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     provider = get_provider(settings)
 
     await logger.ainfo("creating_http_client", timeout=settings.request_timeout)
-    http_client = httpx.AsyncClient(timeout=settings.request_timeout)
+    http_client = httpx.AsyncClient(timeout=httpx.Timeout(10.0, connect=3.0))
 
     app.state.settings = settings
     app.state.provider = provider

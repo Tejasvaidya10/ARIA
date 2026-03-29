@@ -1,3 +1,4 @@
+import httpx
 import pytest
 from fastapi.testclient import TestClient
 
@@ -65,3 +66,10 @@ def test_synthesize_empty_entities(client) -> None:  # type: ignore[no-untyped-d
 def test_metrics_endpoint(client) -> None:  # type: ignore[no-untyped-def]
     resp = client.get("/metrics")
     assert resp.status_code == 200
+
+
+def test_http_client_has_structured_timeout(client) -> None:  # type: ignore[no-untyped-def]
+    timeout = client.app.state.http_client.timeout
+    assert isinstance(timeout, httpx.Timeout)
+    assert timeout.connect == 3.0
+    assert timeout.read == 10.0
