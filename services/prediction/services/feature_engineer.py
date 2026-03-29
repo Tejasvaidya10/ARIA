@@ -64,18 +64,25 @@ def _has_keyword(entities: list[str], keyword: str) -> float:
 
 
 def _parse_money(text: str) -> float | None:
-    """Parse a dollar string into millions. Returns None if unparseable."""
-    cleaned = text.replace("$", "").replace(",", "").strip().lower()
+    """Parse a money string into millions. Returns None if unparseable."""
+    for symbol in ("$", "£", "€", "¥"):
+        text = text.replace(symbol, "")
+    cleaned = text.replace(",", "").strip().lower()
 
-    multiplier = 1.0
+    multiplier = 1e-6  # raw dollars → millions
+
     if "billion" in cleaned:
         multiplier = 1_000.0
         cleaned = cleaned.replace("billion", "").strip()
     elif "million" in cleaned:
         multiplier = 1.0
         cleaned = cleaned.replace("million", "").strip()
-    else:
-        multiplier = 1e-6  # raw dollars to millions
+    elif re.search(r"\d\s*m\b", cleaned):
+        multiplier = 1.0
+        cleaned = re.sub(r"m\b", "", cleaned).strip()
+    elif re.search(r"\d\s*k\b", cleaned):
+        multiplier = 1e-3
+        cleaned = re.sub(r"k\b", "", cleaned).strip()
 
     match = re.search(r"[\d.]+", cleaned)
     if not match:

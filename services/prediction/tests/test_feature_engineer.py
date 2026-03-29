@@ -42,6 +42,13 @@ def test_monetary_parsing() -> None:
     assert _parse_money("not a number") is None
 
 
+def test_monetary_parsing_shorthand() -> None:
+    assert _parse_money("$50k") == pytest.approx(0.05)
+    assert _parse_money("approx $50k") == pytest.approx(0.05)
+    assert _parse_money("2M") == pytest.approx(2.0)
+    assert _parse_money("$1.5M") == pytest.approx(1.5)
+
+
 def test_empty_summary_returns_defaults(empty_entity_summary: dict[str, list[str]]) -> None:
     features = extract_features(empty_entity_summary)
     assert len(features) == len(FEATURE_NAMES)
