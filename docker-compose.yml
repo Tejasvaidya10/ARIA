@@ -104,14 +104,19 @@ services:
       - "9090:9090"
     volumes:
       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.retention.time=7d'
     depends_on:
-      - ingestion
-      - prediction
-      - rag
-      - llm
+      ingestion:
+        condition: service_healthy
+      prediction:
+        condition: service_healthy
+      rag:
+        condition: service_healthy
+      llm:
+        condition: service_healthy
 
   grafana:
     image: grafana/grafana:10.4.2
@@ -124,9 +129,14 @@ services:
     volumes:
       - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
       - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana_data:/var/lib/grafana
     depends_on:
       - prometheus
 
 networks:
   default:
     name: aria
+
+volumes:
+  prometheus_data:
+  grafana_data:
