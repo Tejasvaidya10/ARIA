@@ -62,3 +62,33 @@ def test_predict_empty_entities(client) -> None:  # type: ignore[no-untyped-def]
 def test_metrics_endpoint(client) -> None:  # type: ignore[no-untyped-def]
     resp = client.get("/metrics")
     assert resp.status_code == 200
+
+
+def test_risk_tier_metric_recorded(client: TestClient) -> None:
+    client.post(
+        "/predict",
+        json={
+            "submission_id": "metrics-test",
+            "entity_summary": {
+                "PERIL": ["fire"],
+                "MONEY": ["$50,000"],
+            },
+        },
+    )
+    resp = client.get("/metrics")
+    assert "aria_risk_tier_total" in resp.text
+
+
+def test_shap_cache_metrics_recorded(client: TestClient) -> None:
+    payload = {
+        "submission_id": "cache-test",
+        "entity_summary": {
+            "PERIL": ["fire"],
+            "MONEY": ["$50,000"],
+        },
+    }
+    client.post("/predict", json=payload)
+    client.post("/predict", json=payload)
+    resp = client.get("/metrics")
+    assert "aria_shap_cache_hits_total" in resp.text
+    assert "aria_shap_cache_misses_total" in resp.text

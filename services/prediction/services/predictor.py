@@ -3,6 +3,7 @@ from pathlib import Path
 import numpy as np
 import shap
 import xgboost as xgb
+from prometheus_client import Counter
 
 from services.prediction.config import PredictionSettings
 from services.prediction.core.constants import (
@@ -16,6 +17,14 @@ from services.shared.schemas import RiskFactor, RiskTier
 
 _shap_cache: dict[bytes, list[RiskFactor]] = {}
 _SHAP_CACHE_MAX = 512
+
+_risk_tier_counter = Counter(
+    "aria_risk_tier_total",
+    "Number of predictions by risk tier",
+    ["tier"],
+)
+_shap_cache_hits = Counter("aria_shap_cache_hits_total", "SHAP explanation cache hits")
+_shap_cache_misses = Counter("aria_shap_cache_misses_total", "SHAP explanation cache misses")
 
 
 def load_model(path: str) -> xgb.Booster:
@@ -33,6 +42,7 @@ def create_explainer(model: xgb.Booster) -> shap.TreeExplainer:
 def _get_shap_factors(explainer: shap.TreeExplainer, features: np.ndarray) -> list[RiskFactor]:  # type: ignore[type-arg]
     key = features.tobytes()
     if key in _shap_cache:
+        _shap_cache_hits.inc()
         return _shap_cache[key]
 
     dmatrix = xgb.DMatrix(features.reshape(1, -1), feature_names=FEATURE_NAMES)
@@ -42,6 +52,7 @@ def _get_shap_factors(explainer: shap.TreeExplainer, features: np.ndarray) -> li
     if len(_shap_cache) >= _SHAP_CACHE_MAX:
         _shap_cache.pop(next(iter(_shap_cache)))
     _shap_cache[key] = factors
+    _shap_cache_misses.inc()
     return factors
 
 
@@ -63,6 +74,7 @@ def predict_risk(
 
     risk_factors = _get_shap_factors(probability_explainer, features)
     risk_tier = classify_risk_tier(risk_probability, settings)
+    _risk_tier_counter.labels(tier=risk_tier.value).inc()
     confidence = abs(risk_probability - 0.5) * 2
 
     return PredictionResponse(
