@@ -31,3 +31,4 @@ class LLMSettings(BaseServiceSettings):
     rate_limit: str = "10/minute"
     request_timeout: float = 30.0
     enable_hallucination_check: bool = False
+    audit_log_path: str = "data/audit/audit_trail.jsonl"
