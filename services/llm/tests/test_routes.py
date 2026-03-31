@@ -121,13 +121,12 @@ def test_http_client_has_structured_timeout(client: TestClient) -> None:
 
 
 def test_hallucination_metrics_recorded(monkeypatch: pytest.MonkeyPatch) -> None:
-    from services.llm.services import hallucination as hall_mod
     from services.shared.schemas import HallucinationCheck
 
     async def fake_detect(*args: object, **kwargs: object) -> HallucinationCheck:
-        return HallucinationCheck(detected=False, confidence=0.95, explanation="ok")
+        return HallucinationCheck(detected=False, count=0, flags=[], confidence=0.95)
 
-    monkeypatch.setattr(hall_mod, "detect_hallucinations", fake_detect)
+    monkeypatch.setattr("services.llm.api.routes.detect_hallucinations", fake_detect)
 
     app = create_app()
     app.dependency_overrides[get_settings] = lambda: LLMSettings(
