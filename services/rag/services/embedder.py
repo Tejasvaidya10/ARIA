@@ -1,8 +1,11 @@
 import numpy as np
+from prometheus_client import Counter
 from sentence_transformers import SentenceTransformer
 
 _embed_cache: dict[str, np.ndarray] = {}  # type: ignore[type-arg]
 _EMBED_CACHE_MAX = 512
+_embedding_cache_hits = Counter("aria_embedding_cache_hits_total", "Embedding cache hits")
+_embedding_cache_misses = Counter("aria_embedding_cache_misses_total", "Embedding cache misses")
 
 
 def load_embedding_model(model_name: str) -> SentenceTransformer:
@@ -32,6 +35,7 @@ def entities_to_text(entity_summary: dict[str, list[str]]) -> str:
 def embed_text(model: SentenceTransformer, text: str) -> np.ndarray:  # type: ignore[type-arg]
     """Encode a single text string into a dense vector, caching the result."""
     if text in _embed_cache:
+        _embedding_cache_hits.inc()
         return _embed_cache[text]
 
     embedding = model.encode(text, normalize_embeddings=True)
@@ -40,6 +44,7 @@ def embed_text(model: SentenceTransformer, text: str) -> np.ndarray:  # type: ig
     if len(_embed_cache) >= _EMBED_CACHE_MAX:
         _embed_cache.pop(next(iter(_embed_cache)))
     _embed_cache[text] = result
+    _embedding_cache_misses.inc()
     return result
 
 

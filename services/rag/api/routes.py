@@ -2,6 +2,7 @@ import asyncio
 from typing import Any
 
 from fastapi import APIRouter, Depends, Request
+from prometheus_client import Histogram
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
@@ -13,6 +14,11 @@ from services.rag.services.index_manager import FAISSIndexManager
 
 limiter = Limiter(key_func=get_remote_address)
 router = APIRouter()
+_rag_similarity = Histogram(
+    "aria_rag_similarity",
+    "Similarity scores of retrieved cases",
+    buckets=[0.5, 0.6, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1.0],
+)
 
 
 def _run_search(
@@ -25,6 +31,9 @@ def _run_search(
     query_text = entities_to_text(request_data.entity_summary)
     query_vector = embed_text(model, query_text)
     results = manager.search(query_vector, top_k=request_data.top_k, threshold=threshold)
+
+    for result in results:
+        _rag_similarity.observe(result.similarity_score)
 
     return SearchResponse(
         query_text=query_text,

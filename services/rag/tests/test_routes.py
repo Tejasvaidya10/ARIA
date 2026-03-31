@@ -56,3 +56,27 @@ def test_search_empty_entities(client) -> None:  # type: ignore[no-untyped-def]
 def test_metrics_endpoint(client) -> None:  # type: ignore[no-untyped-def]
     resp = client.get("/metrics")
     assert resp.status_code == 200
+
+
+def test_embedding_cache_metrics_recorded(client: TestClient) -> None:
+    payload = {
+        "entity_summary": {"PERIL": ["fire"], "COVERAGE_TYPE": ["property"]},
+        "top_k": 3,
+    }
+    client.post("/search", json=payload)
+    client.post("/search", json=payload)
+    resp = client.get("/metrics")
+    assert "aria_embedding_cache_hits_total" in resp.text
+    assert "aria_embedding_cache_misses_total" in resp.text
+
+
+def test_rag_similarity_metric_recorded(client: TestClient) -> None:
+    client.post(
+        "/search",
+        json={
+            "entity_summary": {"PERIL": ["fire"], "COVERAGE_TYPE": ["property"]},
+            "top_k": 3,
+        },
+    )
+    resp = client.get("/metrics")
+    assert "aria_rag_similarity" in resp.text
