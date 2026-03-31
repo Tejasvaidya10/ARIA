@@ -4,6 +4,7 @@ import httpx
 import structlog
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse
+from prometheus_client import Counter, Histogram
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
@@ -18,6 +19,17 @@ from services.shared.schemas import SubmissionAnalysis
 logger = structlog.get_logger()
 limiter = Limiter(key_func=get_remote_address)
 router = APIRouter(tags=["llm"])
+
+_hallucination_checks = Counter(
+    "aria_hallucination_checks_total",
+    "Hallucination detection outcomes",
+    ["detected"],
+)
+_hallucination_confidence = Histogram(
+    "aria_hallucination_confidence",
+    "Hallucination judge confidence scores",
+    buckets=[0.5, 0.6, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1.0],
+)
 
 
 @router.post("/synthesize", response_model=SubmissionAnalysis)
@@ -62,6 +74,10 @@ async def synthesize(
             settings.anthropic_api_key,
             settings.anthropic_model,
         )
+
+    if hallucination_check is not None:
+        _hallucination_checks.labels(detected=str(hallucination_check.detected).lower()).inc()
+        _hallucination_confidence.observe(hallucination_check.confidence)
 
     elapsed_ms = round((time.perf_counter() - start) * 1000, 2)
 
