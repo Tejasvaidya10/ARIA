@@ -1,5 +1,8 @@
+from typing import cast
+
 import httpx
 import pytest
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from services.llm.api.dependencies import get_provider, get_settings
@@ -111,7 +114,7 @@ def test_synthesize_hallucination_check_on(monkeypatch: pytest.MonkeyPatch) -> N
 
 
 def test_http_client_has_structured_timeout(client: TestClient) -> None:
-    timeout = client.app.state.http_client.timeout
+    timeout = cast(FastAPI, client.app).state.http_client.timeout
     assert isinstance(timeout, httpx.Timeout)
     assert timeout.connect == 3.0
     assert timeout.read == 10.0
