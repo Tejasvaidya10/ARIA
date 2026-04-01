@@ -11,6 +11,7 @@ from slowapi.util import get_remote_address
 from services.llm.api.dependencies import get_http_client, get_provider, get_settings
 from services.llm.config import LLMSettings
 from services.llm.core.schemas import SynthesisRequest
+from services.llm.services import audit
 from services.llm.services.hallucination import detect_hallucinations
 from services.llm.services.provider import LLMProvider
 from services.shared.exceptions import SynthesisError
@@ -100,4 +101,7 @@ async def synthesize(
         risk_tier=analysis.risk_tier,
         processing_time_ms=elapsed_ms,
     )
+
+    await audit.record(analysis, settings.audit_log_path, settings.provider)
+
     return analysis

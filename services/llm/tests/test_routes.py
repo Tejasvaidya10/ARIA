@@ -1,3 +1,5 @@
+import json
+from pathlib import Path
 from typing import cast
 
 import httpx
@@ -147,3 +149,29 @@ def test_hallucination_metrics_recorded(monkeypatch: pytest.MonkeyPatch) -> None
         resp = c.get("/metrics")
         assert "aria_hallucination_checks_total" in resp.text
         assert "aria_hallucination_confidence" in resp.text
+
+
+def test_synthesize_writes_audit_record(tmp_path: Path) -> None:
+    audit_path = str(tmp_path / "audit_trail.jsonl")
+
+    app = create_app()
+    app.dependency_overrides[get_provider] = FakeLLMProvider
+    app.dependency_overrides[get_settings] = lambda: LLMSettings(
+        audit_log_path=audit_path,
+    )
+
+    with TestClient(app) as c:
+        c.post(
+            "/synthesize",
+            json={
+                "submission_id": "audit-route-test",
+                "entity_summary": {"PERIL": ["fire"]},
+            },
+        )
+
+    lines = Path(audit_path).read_text().strip().split("\n")
+    assert len(lines) == 1
+    event = json.loads(lines[0])
+    assert event["submission_id"] == "audit-route-test"
+    assert event["risk_tier"] in ["LOW", "MODERATE", "HIGH", "CRITICAL"]
+    assert event["provider"] == "ollama"
