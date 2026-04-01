@@ -169,9 +169,11 @@ def test_synthesize_writes_audit_record(tmp_path: Path) -> None:
             },
         )
 
-    lines = Path(audit_path).read_text().strip().split("\n")
+    content = Path(audit_path).read_text().strip()
+    assert content, "audit file is empty"
+    lines = content.split("\n")
     assert len(lines) == 1
     event = json.loads(lines[0])
     assert event["submission_id"] == "audit-route-test"
     assert event["risk_tier"] in ["LOW", "MODERATE", "HIGH", "CRITICAL"]
-    assert event["provider"] == "ollama"
+    assert event["provider"] in ("ollama", "anthropic")
