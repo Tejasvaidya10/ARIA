@@ -8,7 +8,7 @@ from services.shared.schemas import SubmissionAnalysis
 
 logger = structlog.get_logger()
 
-open = open
+open = open  # module-level alias so tests can monkeypatch this name
 
 
 async def record(analysis: SubmissionAnalysis, audit_log_path: str, provider: str) -> None:
