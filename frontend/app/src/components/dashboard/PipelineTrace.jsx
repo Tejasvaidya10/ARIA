@@ -8,7 +8,8 @@ const STAGES = [
 ]
 
 export default function PipelineTrace({ trace }) {
-  const total = Object.values(trace).reduce((sum, v) => sum + v, 0)
+  const hasNull = Object.values(trace).some((v) => v == null)
+  const total = Object.values(trace).reduce((sum, v) => sum + (v ?? 0), 0)
 
   return (
     <div className="card p-5">
@@ -22,11 +23,15 @@ export default function PipelineTrace({ trace }) {
               </div>
               <span className="text-ink-700">{stage.label}</span>
             </div>
-            <span className="text-ink-400 font-mono text-xs">{formatMs(trace[stage.key])}</span>
+            <span className="text-ink-400 font-mono text-xs">
+              {trace[stage.key] != null ? formatMs(trace[stage.key]) : '—'}
+            </span>
           </div>
         ))}
         <div className="border-t border-surface-200 pt-3 mt-1 flex items-center justify-between text-sm">
-          <span className="text-ink-900 font-semibold">Total</span>
+          <span className="text-ink-900 font-semibold">
+            Total{hasNull ? '*' : ''}
+          </span>
           <span className="text-ink-900 font-mono text-xs font-bold">{formatMs(total)}</span>
         </div>
       </div>
