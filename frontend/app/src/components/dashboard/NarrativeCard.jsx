@@ -2,7 +2,7 @@ export default function NarrativeCard({ narrative }) {
   const sections = parseNarrative(narrative)
 
   return (
-    <div className="card p-5 h-full flex flex-col">
+    <div className="card p-5 flex flex-col">
       <div className="flex items-center justify-between mb-4 shrink-0">
         <div>
           <h3 className="text-sm font-semibold text-ink-900">Underwriter Narrative</h3>
