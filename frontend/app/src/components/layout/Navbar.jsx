@@ -12,7 +12,7 @@ export default function Navbar() {
           <a href="#features" className="text-sm text-white/50 hover:text-white/90 transition">Features</a>
           <a href="#pipeline" className="text-sm text-white/50 hover:text-white/90 transition">Pipeline</a>
           <a href="#tech" className="text-sm text-white/50 hover:text-white/90 transition">Tech Stack</a>
-          <Link to="/app" className="px-4 py-2 text-sm font-medium brand-gradient rounded-lg hover:opacity-90 transition brand-glow cursor-pointer">
+          <Link to="/app" className="px-4 py-2 text-sm font-medium brand-gradient rounded-xl hover:opacity-90 transition brand-glow cursor-pointer">
             Launch App
           </Link>
         </div>
