@@ -1,5 +1,5 @@
 import RiskBadge from '@/components/shared/RiskBadge'
-import { formatCurrency, formatPercent, formatMs } from '@/lib/formatters'
+import { formatMs } from '@/lib/formatters'
 
 const RISK_BAR_COLORS = {
   LOW: 'from-emerald-400 to-emerald-500',
