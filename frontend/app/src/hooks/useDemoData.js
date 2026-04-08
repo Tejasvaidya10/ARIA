@@ -1,11 +1,13 @@
 import highRisk from '@/data/demo-high-risk.json'
 import lowRisk from '@/data/demo-low-risk.json'
 import criticalRisk from '@/data/demo-critical-risk.json'
+import moderateRisk from '@/data/demo-moderate-risk.json'
 
 const DEMOS = {
-  high: highRisk,
-  low: lowRisk,
   critical: criticalRisk,
+  high: highRisk,
+  moderate: moderateRisk,
+  low: lowRisk,
 }
 
 export function useDemoData(id) {

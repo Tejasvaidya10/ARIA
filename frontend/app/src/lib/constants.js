@@ -15,7 +15,8 @@ export const PIPELINE_STAGES = [
 ]
 
 export const DEMO_SUBMISSIONS = [
-  { id: 'high', label: 'Commercial Property Fire', tier: 'HIGH' },
-  { id: 'low', label: 'Minor Vehicle Theft', tier: 'LOW' },
   { id: 'critical', label: 'Multi-Vehicle Collision', tier: 'CRITICAL' },
+  { id: 'high', label: 'Commercial Property Fire', tier: 'HIGH' },
+  { id: 'moderate', label: 'Residential Fire Claim', tier: 'MODERATE' },
+  { id: 'low', label: 'Minor Vehicle Theft', tier: 'LOW' },
 ]

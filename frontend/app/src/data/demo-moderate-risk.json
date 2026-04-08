@@ -1,0 +1,37 @@
+{
+  "submission_id": "ARIA-2024-0219",
+  "filename": "residential_fire_claim.pdf",
+  "risk_tier": "MODERATE",
+  "risk_probability": 0.4812,
+  "predicted_claim_amount": 34750,
+  "key_risk_factors": [
+    { "name": "Fire peril present", "shap_value": 0.612, "direction": "increases_risk" },
+    { "name": "Highest monetary value", "shap_value": 0.284, "direction": "increases_risk" },
+    { "name": "Property construction risk", "shap_value": 0.191, "direction": "increases_risk" },
+    { "name": "Umbrella coverage present", "shap_value": -0.243, "direction": "decreases_risk" },
+    { "name": "Total entities in document", "shap_value": -0.178, "direction": "decreases_risk" }
+  ],
+  "underwriter_narrative": "## Risk Assessment Summary\n\nThis submission presents a **MODERATE risk** profile with a predicted claim probability of 48.1%. The residential fire claim involves a single-family home with wood-frame construction and standard coverage limits.\n\n## Key Concerns\n\n- **Fire peril exposure**: Wood-frame construction increases vulnerability to fire spread and structural damage\n- **Monetary exposure**: Dwelling replacement value of $280,000 falls within the moderate-severity range for residential claims\n- **Construction risk**: Older construction vintage may not meet current fire-resistance standards\n\n## Mitigating Factors\n\n- **Umbrella coverage**: $1M umbrella policy provides additional protection layer\n- **Single-family structure**: Limits exposure to one dwelling unit\n- **Standard claim pattern**: Residential fire claims in this value range have predictable outcomes\n\n## Historical Comparison\n\nSimilar residential fire claims in our database show average payouts of $28,000–$42,000. This submission falls squarely within expected parameters. SEC EDGAR filings from Hartford indicate stable loss ratios for residential fire coverage in this geographic tier.\n\n## Recommendation\n\n**Approve with Conditions** — Standard underwriting approval recommended. Require current fire inspection report and verification of smoke detector installation. Consider 5% premium adjustment for construction vintage.",
+  "similar_cases": [
+    { "policy_id": "PLY-2023-00614", "similarity_score": 0.88, "summary": "Residential fire, wood-frame, kitchen origin, severity: major damage", "outcome": "Claim: $38,200" },
+    { "policy_id": "PLY-2024-00187", "similarity_score": 0.83, "summary": "House fire, electrical cause, partial loss, severity: major damage", "outcome": "Claim: $29,800" },
+    { "policy_id": "PLY-2022-00923", "similarity_score": 0.74, "summary": "Residential fire, detached garage, contained, severity: minor damage", "outcome": "Claim: $12,400" },
+    { "policy_id": "EDGAR-HARTFORD-0381", "similarity_score": 0.69, "summary": "Residential fire loss trends and reserve adequacy in personal lines", "outcome": "SEC Filing: Hartford 10-K" }
+  ],
+  "confidence_score": 0.713,
+  "processing_time_ms": 2184,
+  "entities": {
+    "PERIL": ["fire", "smoke damage"],
+    "COVERAGE_TYPE": ["homeowners", "umbrella $1M"],
+    "MONEY": ["$280,000", "$45,000"],
+    "PROPERTY_TYPE": ["wood-frame single-family home"],
+    "VEHICLE": [],
+    "INJURY": []
+  },
+  "pipeline_trace": {
+    "ingestion_ms": 118,
+    "prediction_ms": 31,
+    "rag_ms": 24,
+    "llm_ms": 2011
+  }
+}
