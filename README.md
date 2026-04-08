@@ -154,7 +154,7 @@ Four FastAPI microservices orchestrated by Docker Compose:
 
 ### Tooling
 - **Ruff** for Python linting and formatting
-- **pytest** (55 tests) for backend testing
+- **pytest** (81 tests) for backend testing
 - **ESLint** for frontend linting
 - **pre-commit hooks** for code quality
 
@@ -216,7 +216,7 @@ ARIA/
 ### Clone and setup
 
 ```bash
-git clone https://github.com/<your-username>/ARIA.git
+git clone https://github.com/Tejasvaidya10/ARIA.git
 cd ARIA
 
 # Create and activate virtual environment
@@ -291,7 +291,7 @@ npm run dev
 
 ### Demo mode vs Live mode
 
-- **Demo mode** -- Works without a backend. Three pre-loaded submissions (HIGH / LOW / CRITICAL risk) with static JSON data. Available on the Vercel deployment.
+- **Demo mode** -- Works without a backend. Four pre-loaded submissions (CRITICAL / HIGH / MODERATE / LOW risk) with static JSON data. Available on the Vercel deployment.
 - **Live mode** -- Upload any PDF. Requires Docker services running on localhost. The frontend calls `POST /extract` (ingestion) and `POST /synthesize` (LLM orchestrator) to run the full pipeline.
 
 ### Deployment
@@ -499,7 +499,7 @@ Run prediction + RAG + narrative generation.
 # Activate venv
 source .venv/bin/activate
 
-# Run all 55 tests
+# Run all 81 tests
 python -m pytest services/ -x -q
 
 # Run with verbose output
