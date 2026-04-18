@@ -1,8 +1,19 @@
 # ARIA -- Automated Risk Intelligence Assistant
 
-ARIA is a 4-stage GenAI pipeline for insurance underwriting. Upload a PDF document, extract risk entities with NER, predict claim probability with XGBoost, retrieve similar cases via FAISS vector search, and generate an explainable underwriter narrative with an LLM.
+ARIA is a production-shaped GenAI pipeline for insurance underwriting: PDF in, explainable risk assessment out. Four FastAPI microservices — custom spaCy NER, XGBoost with SHAP, FAISS retrieval, and Claude tool-use orchestration — wired together with Docker Compose, a React frontend on Vercel, and 81 tests.
 
 **Live demo (demo mode):** [aria-pi-blond.vercel.app](https://aria-pi-blond.vercel.app)
+
+---
+
+## Highlights
+
+- **End-to-end GenAI pipeline**: PDF → custom spaCy NER → XGBoost + SHAP → FAISS RAG → Claude tool-use synthesis
+- **Tool-use orchestration** — the Claude service calls prediction and RAG as tools rather than hardcoded HTTP chains
+- **Provider protocol** — LLM layer swaps between Claude (prod) and Ollama (local) via env var, single interface
+- **Custom-trained spaCy NER** with 12 domain entity types (PERIL, COVERAGE_TYPE, POLICY_NUMBER, etc.)
+- **100% adjacent-tier accuracy** and **100% SHAP grounding** (zero hallucinated features) on a 20-case stratified evaluation
+- **81 tests**, `ruff` + `mypy --strict`, pre-commit hooks, deployed frontend on Vercel
 
 ---
 
@@ -362,6 +373,8 @@ python scripts/eval_pipeline.py --include-llm
 
 ### Current results (seed=42, 20 cases)
 
+The evaluation set is intentionally small (5 cases per tier, stratified). Numbers below are directional rather than benchmark-grade; expanding the held-out set is on the roadmap. The more meaningful signal is that the model never misclassifies a case by more than one tier — a LOW is never predicted as HIGH.
+
 | Metric                | Value   |
 |-----------------------|---------|
 | Tier exact match      | 55% (11/20) |
@@ -370,6 +383,18 @@ python scripts/eval_pipeline.py --include-llm
 | Consistency           | 100% (20/20) |
 | Mean RAG similarity   | 0.88    |
 | Mean processing time  | 22ms    |
+
+---
+
+## Key Design Decisions
+
+- **Severity-based ML target**: `incident_severity` mapped to ordinal risk tiers, not raw dollar amounts
+- **No target leakage**: `CLAIM_STATUS` excluded from entity summaries to prevent data leakage
+- **Provider protocol pattern**: Common interface for `AnthropicProvider` and `OllamaProvider`, switchable via env var
+- **Tool-use orchestration**: LLM service calls prediction and RAG as tools rather than chaining HTTP calls
+- **FAISS IndexFlatIP**: Inner-product similarity on normalized vectors, exact search at current scale
+- **EDGAR ID offset**: Case IDs from EDGAR filings start at 10000 to avoid collisions with Kaggle case IDs
+- **PySpark environment**: `PYSPARK_PYTHON` set to `sys.executable` before SparkSession creation
 
 ### Frontend submission evaluation
 
@@ -516,15 +541,15 @@ Tests use `TestClient` (not `httpx.AsyncClient`) to ensure FastAPI lifespan even
 
 ---
 
-## Key Design Decisions
+## Status & Roadmap
 
-- **Severity-based ML target**: `incident_severity` mapped to ordinal risk tiers, not raw dollar amounts
-- **No target leakage**: `CLAIM_STATUS` excluded from entity summaries to prevent data leakage
-- **Provider protocol pattern**: Common interface for `AnthropicProvider` and `OllamaProvider`, switchable via env var
-- **Tool-use orchestration**: LLM service calls prediction and RAG as tools rather than chaining HTTP calls
-- **FAISS IndexFlatIP**: Inner-product similarity on normalized vectors, exact search at current scale
-- **EDGAR ID offset**: Case IDs from EDGAR filings start at 10000 to avoid collisions with Kaggle case IDs
-- **PySpark environment**: `PYSPARK_PYTHON` set to `sys.executable` before SparkSession creation
+Actively developed. Next up:
+
+- [ ] Expand evaluation to a larger held-out set with per-tier confusion matrix
+- [ ] CD pipeline: build + push service images, deploy to cloud target
+- [ ] Calibrate tier probabilities (currently raw softmax outputs)
+- [ ] Adversarial / edge-case test suite for the LLM narrative layer
+- [ ] Enable the frontend CI job (currently `continue-on-error: true`)
 
 ---
 
